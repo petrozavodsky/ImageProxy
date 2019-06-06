@@ -1,0 +1,36 @@
+{
+  "name": "ImageProxy",
+  "version": "5.0.0",
+  "description": "WordPress plugin gulp tasks",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "petrozavodsky",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^7.1.4",
+    "concat": "^1.0.3",
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^4.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-css-url-adjuster": "^0.2.3",
+    "gulp-csso": "^3.0.0",
+    "gulp-imagemin": "^3.3.0",
+    "gulp-less": "^3.3.2",
+    "gulp-load-plugins": "^1.5.0",
+    "gulp-notify": "^3.0.0",
+    "gulp-plumber": "^1.1.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sort": "^2.0.0",
+    "gulp-sourcemaps": "^2.6.1",
+    "gulp-svgo": "^1.2.5",
+    "gulp-uglify": "^3.0.0",
+    "gulp-wp-pot": "^2.2.0",
+    "imagemin-jpeg-recompress": "^5.1.0",
+    "imagemin-pngquant": "^5.0.1",
+    "streamqueue": "^1.1.1",
+    "svgo": "^0.7.2"
+  }
+}
