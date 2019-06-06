@@ -11,37 +11,40 @@ Version: 1.0.3
 License: GPLv3
 */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+if (!defined('ABSPATH')) {
+    exit;
 }
 
-require_once( plugin_dir_path( __FILE__ )."includes/Autoloader.php" );
+require_once(plugin_dir_path(__FILE__) . "includes/Autoloader.php");
 
-if(file_exists(plugin_dir_path(__FILE__)."vendor/autoload.php")) {
+if (file_exists(plugin_dir_path(__FILE__) . "vendor/autoload.php")) {
     require_once(plugin_dir_path(__FILE__) . "vendor/autoload.php");
 }
 
 use ImageProxy\Autoloader;
 
-new Autoloader( __FILE__, 'ImageProxy' );
+new Autoloader(__FILE__, 'ImageProxy');
 
 use ImageProxy\Base\Wrap;
 
-class ImageProxy extends Wrap {
-	public $version = '1.0.3';
-	public static $textdomine;
+class ImageProxy extends Wrap
+{
+    public $version = '1.0.3';
+    public static $textdomine;
 
-	public function __construct() {
-		self::$textdomine = $this->setTextdomain();
+    public function __construct()
+    {
+        self::$textdomine = $this->setTextdomain();
 
+        new \ImageProxy\Classes\Reformer();
 
-
-	}
+    }
 
 }
 
-function ImageProxy__init() {
-	new ImageProxy();
+function ImageProxy__init()
+{
+    new ImageProxy();
 }
 
-add_action( 'plugins_loaded', 'ImageProxy__init', 30 );
+add_action('plugins_loaded', 'ImageProxy__init', 30);
