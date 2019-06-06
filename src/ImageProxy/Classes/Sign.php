@@ -2,10 +2,9 @@
 
 namespace ImageProxy\Classes;
 
-use ImageProxy\Utils\Assets;
 use WP_Error;
 
-class MyClass
+class Sign
 {
 
     private $key;
@@ -53,7 +52,8 @@ class MyClass
         $signature = hash_hmac('sha256', $saltBin . $path, $keyBin, true);
         $signature = pack('A' . $signatureSize, $signature);
         $signature = rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
-        print(sprintf("/%s%s", $signature, $path));
+
+        return sprintf("/%s%s", $signature, $path);
 
     }
 }
