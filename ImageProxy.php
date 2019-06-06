@@ -10,7 +10,7 @@ Requires PHP: 7.0
 Version: 1.0.3
 License: GPLv3
 */
-	
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -34,21 +34,7 @@ class ImageProxy extends Wrap {
 	public function __construct() {
 		self::$textdomine = $this->setTextdomain();
 
-		new \ImageProxy\Classes\AjaxOut2();
-		new \ImageProxy\Classes\AjaxOut( 'boilerplate-ajax' );
-		new \ImageProxy\Classes\MyClass( $this );
-		new \ImageProxy\Utils\ActivateWidgets(
-			__FILE__,
-			'Widgets',
-			'ImageProxy'
-		);
-		new \ImageProxy\Classes\Shortcode(
-			'boilerplate_shortcode',
-			[
-				'title'       => 'Boilerplate title',
-				'description' => 'Boilerplate description'
-			]
-		);
+
 
 	}
 
