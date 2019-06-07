@@ -11,7 +11,7 @@ class Builder
 
     private $salt = '520f986b998545b4785e0defbc4f3c1203f22de2374a3d53cb7a7fe9fea309c5';
 
-    private $host = 'https://royalcheese.ru/api/imageproxy';
+    private $host = 'https://cdn-0.royalcheese.ru';
 
     public function __construct()
     {
