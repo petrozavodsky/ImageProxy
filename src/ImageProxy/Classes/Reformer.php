@@ -13,15 +13,6 @@ class Reformer
 
 //        add_filter('wp_get_attachment_image_src', [$this, 'src'], 10, 3);
 
-//        d(
-//            $this->proxy->builder(
-//                [
-//                    'width' => 0,
-//                    'height' => 0
-//                ],
-//               'https://brodude.ru/wp-content/uploads/2019/05/28/brodude.ru_28.05.2019_rWiqVagh0cRm7.gif'
-//            )
-//        );
     }
 
     public function src($image, $attachment_id, $size)
