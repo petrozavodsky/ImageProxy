@@ -58,34 +58,16 @@ class Reformer
 
     public function regexSrc($str)
     {
-        preg_match('~<img.*?src=?["|\']([^"]+)?["|\'].*?>~', $str, $m);
+        preg_match_all('~<img.*>~im', $str, $images);
 
-        $height = $this->getAttribute('height', $m[0]);
-
-
-    }
-
-    public function regexSrcset($str)
-    {
-
-        preg_match('<img.*?srcset="([^"]+)".*?>', $str, $m);
-
-        $array = explode(',', $m[1]);
-
-        foreach ($array as $val) {
-            $url = preg_replace_callback(
-                '#(.*)\s+?(\d+\w)#',
-                function ($matches) {
-                    return $matches[1];
-                },
-                $val
-            );
-
-            d($url);
-
+        foreach ($images[0] as $image) {
+            $height = $this->getAttribute('height', $image);
+            $width = $this->getAttribute('width', $image);
+            $src = $this->getAttribute('src', $image);
         }
 
     }
+
 
     /**
      * Get html attribute by name
@@ -93,11 +75,11 @@ class Reformer
      * @param $atr
      * @return mixed
      */
-    public function getAttribute( $atr, $str)
+    public function getAttribute($atr, $str)
     {
-        preg_match("~{$atr}=?[\"|'](\w+?)?[\"|']~", $str, $m);
-        d($m);
+        preg_match("~{$atr}=[\"|'](.*)[\"|']\s~imU", $str, $m);
 
+        d($m[1]);
         return $m[1];
     }
 
