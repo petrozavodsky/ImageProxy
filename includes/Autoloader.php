@@ -16,6 +16,7 @@ namespace ImageProxy;
 			$this->addNamespaceObject( "Utils" , $this->space,'core' );
 			$this->addNamespaceObject( "Widgets" );
 			$this->addNamespaceObject( "Classes" );
+			$this->addNamespaceObject( "Admin" );
 		}
 
 		/**

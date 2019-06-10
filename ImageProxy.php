@@ -21,6 +21,7 @@ if (file_exists(plugin_dir_path(__FILE__) . "vendor/autoload.php")) {
     require_once(plugin_dir_path(__FILE__) . "vendor/autoload.php");
 }
 
+use ImageProxy\Admin\Page;
 use ImageProxy\Autoloader;
 
 new Autoloader(__FILE__, 'ImageProxy');
@@ -37,6 +38,8 @@ class ImageProxy extends Wrap
         self::$textdomine = $this->setTextdomain();
 
         new \ImageProxy\Classes\Reformer();
+
+        new Page();
 
     }
 
