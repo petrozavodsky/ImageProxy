@@ -60,16 +60,8 @@ class Reformer
     {
         preg_match('~<img.*?src=?["|\']([^"]+)?["|\'].*?>~', $str, $m);
 
-//        $height = $this->getAttribute('height', $m[0]);
-//        $width = $this->getAttribute('width', $m[0]);
+        $height = $this->getAttribute('height', $m[0]);
 
-        $doc = new DOMDocument();
-        $doc->loadHTML($str);
-        $imageTags = $doc->getElementsByTagName('img');
-
-        foreach($imageTags as $tag) {
-            d( $tag->getAttribute('srcset') );
-        }
 
     }
 
@@ -101,9 +93,11 @@ class Reformer
      * @param $atr
      * @return mixed
      */
-    public function getAttribute($str, $atr)
+    public function getAttribute( $atr, $str)
     {
-        preg_match("#width=?[\"|'](\w+?)?[\"|']#gmi", $str, $m);
+        preg_match("~{$atr}=?[\"|'](\w+?)?[\"|']~", $str, $m);
+        d($m);
+
         return $m[1];
     }
 
