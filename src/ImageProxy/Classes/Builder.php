@@ -2,10 +2,13 @@
 
 namespace ImageProxy\Classes;
 
+use ImageProxy\Admin\Page;
 use WP_Error;
 
 class Builder
 {
+
+    private $options = [];
 
     private $key = '943b421c9eb07c830af81030552c86009268de4e532ba2ee2eab8247c6da0881';
 
@@ -15,6 +18,11 @@ class Builder
 
     public function __construct()
     {
+        $this->options = Page::getOptions();
+
+        $this->key = $this->options['key'];
+        $this->salt = $this->options['salt'];
+        $this->host = $this->options['host'];
     }
 
     private function sign($path)

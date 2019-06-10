@@ -3,15 +3,21 @@
 namespace ImageProxy\Classes;
 
 
+use DOMDocument;
+use ImageProxy\Admin\Page;
+
 class Reformer
 {
     private $proxy;
 
     public function __construct()
     {
+
         $this->proxy = new Builder();
 
 //        add_filter('wp_get_attachment_image_src', [$this, 'src'], 10, 3);
+
+        add_filter('the_content', [$this, 'postHtml']);
 
 //        d(
 //            $this->proxy->builder(
@@ -22,6 +28,12 @@ class Reformer
 //               'https://brodude.ru/wp-content/uploads/2019/05/28/brodude.ru_28.05.2019_rWiqVagh0cRm7.gif'
 //            )
 //        );
+    }
+
+    public function postHtml($html)
+    {
+        $this->regexSrc($html);
+        return $html;
     }
 
     public function src($image, $attachment_id, $size)
@@ -43,5 +55,56 @@ class Reformer
         return $image;
     }
 
+
+    public function regexSrc($str)
+    {
+        preg_match('~<img.*?src=?["|\']([^"]+)?["|\'].*?>~', $str, $m);
+
+//        $height = $this->getAttribute('height', $m[0]);
+//        $width = $this->getAttribute('width', $m[0]);
+
+        $doc = new DOMDocument();
+        $doc->loadHTML($str);
+        $imageTags = $doc->getElementsByTagName('img');
+
+        foreach($imageTags as $tag) {
+            d( $tag->getAttribute('srcset') );
+        }
+
+    }
+
+    public function regexSrcset($str)
+    {
+
+        preg_match('<img.*?srcset="([^"]+)".*?>', $str, $m);
+
+        $array = explode(',', $m[1]);
+
+        foreach ($array as $val) {
+            $url = preg_replace_callback(
+                '#(.*)\s+?(\d+\w)#',
+                function ($matches) {
+                    return $matches[1];
+                },
+                $val
+            );
+
+            d($url);
+
+        }
+
+    }
+
+    /**
+     * Get html attribute by name
+     * @param $str
+     * @param $atr
+     * @return mixed
+     */
+    public function getAttribute($str, $atr)
+    {
+        preg_match("#width=?[\"|'](\w+?)?[\"|']#gmi", $str, $m);
+        return $m[1];
+    }
 
 }
