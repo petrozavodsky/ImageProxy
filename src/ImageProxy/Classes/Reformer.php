@@ -32,8 +32,7 @@ class Reformer
 
     public function postHtml($html)
     {
-        $this->regexSrc($html);
-        return $html;
+        return $this->regexSrc($html);
     }
 
     public function src($image, $attachment_id, $size)
@@ -60,12 +59,23 @@ class Reformer
     {
         preg_match_all('~<img.*>~im', $str, $images);
 
+        $array = [];
+
         foreach ($images[0] as $image) {
             $height = $this->getAttribute('height', $image);
             $width = $this->getAttribute('width', $image);
             $src = $this->getAttribute('src', $image);
+
+            $array[$src] = $this->proxy->builder(
+                [
+                    'width' => $width,
+                    'height' => $height
+                ],
+                $src
+            );
         }
 
+        return str_replace(array_keys($array), array_values($array), $str);
     }
 
 
