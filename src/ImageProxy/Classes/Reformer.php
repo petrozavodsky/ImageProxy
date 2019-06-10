@@ -79,7 +79,6 @@ class Reformer
     {
         preg_match("~{$atr}=[\"|'](.*)[\"|']\s~imU", $str, $m);
 
-        d($m[1]);
         return $m[1];
     }
 
