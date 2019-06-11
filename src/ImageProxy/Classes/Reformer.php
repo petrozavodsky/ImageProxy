@@ -15,10 +15,8 @@ class Reformer
 
         $this->proxy = new Builder();
 
-        add_filter('wp_get_attachment_image_src', [$this, 'src'], 10, 3);
-
-        add_filter('the_content', [$this, 'postHtml']);
-
+            add_filter('wp_get_attachment_image_src', [$this, 'src'], 10, 3);
+            add_filter('the_content', [$this, 'postHtml']);
     }
 
     public function postHtml($html)
@@ -37,8 +35,8 @@ class Reformer
 
         $image[0] = $this->proxy->builder(
             [
-                'width' => $sizeMeta['width'],
-                'height' => $sizeMeta['height']
+                'width' => empty($sizeMeta['width']) ? 0 : $sizeMeta['width'],
+                'height' => empty($sizeMeta['height']) ? 0 : $sizeMeta['height'],
             ],
             $image[0]
         );
