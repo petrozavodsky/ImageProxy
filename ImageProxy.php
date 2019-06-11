@@ -27,6 +27,7 @@ use ImageProxy\Autoloader;
 new Autoloader(__FILE__, 'ImageProxy');
 
 use ImageProxy\Base\Wrap;
+use ImageProxy\Classes\Reformer;
 
 class ImageProxy extends Wrap
 {
@@ -37,7 +38,7 @@ class ImageProxy extends Wrap
     {
         self::$textdomine = $this->setTextdomain();
 
-        new \ImageProxy\Classes\Reformer();
+        new Reformer();
 
         new Page();
 
