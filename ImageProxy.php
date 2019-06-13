@@ -39,7 +39,6 @@ class ImageProxy extends Wrap
         self::$textdomine = $this->setTextdomain();
 
         new Reformer();
-
         new Page();
 
     }
