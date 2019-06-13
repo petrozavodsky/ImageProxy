@@ -19,10 +19,41 @@ class Builder
     public function __construct()
     {
         $this->options = Page::getOptions();
+    }
 
-        $this->key = $this->options['key'];
-        $this->salt = $this->options['salt'];
-        $this->host = $this->options['host'];
+    public function __get($prop)
+    {
+        if (in_array($prop, ['key', 'key'])) {
+            return $this->options[$prop];
+        } elseif ('host' == $prop) {
+            $hosts = $this->parseHostsOptions();
+            return $hosts[0];
+        }
+    }
+
+    private function getHostByImage($salt)
+    {
+        $object = new SelectCdnAddress($salt, $this->parseHostsOptions());
+
+        return $object->getAddress();
+    }
+
+    /**
+     * Возвращает доступные домены CDN в виде массива
+     *
+     * @return array|string
+     */
+    private function parseHostsOptions()
+    {
+        $host = $this->options['host'];
+
+        if (false === strpos($host, ',')) {
+            return [trim($host)];
+        }
+
+        $array = explode(',', $host);
+
+        return array_map('trim', $array);
     }
 
     private function sign($path)
@@ -62,7 +93,7 @@ class Builder
 
         $path = implode('/', $data);
 
-        return $this->host . $this->sign($path);
+        return  $this->getHostByImage($url) . $this->sign($path);
 
     }
 

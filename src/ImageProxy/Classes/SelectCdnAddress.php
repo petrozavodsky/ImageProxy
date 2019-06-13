@@ -4,7 +4,7 @@
  * Date: 2019-06-13
  */
 
-namespace Classes;
+namespace ImageProxy\Classes;
 
 
 use WP_Error;
@@ -20,12 +20,12 @@ class SelectCdnAddress
         $this->salt = $salt;
         $this->addressList = $addressList;
 
-        if(empty($salt)){
-            new WP_Error('empty_salt','pls add salt');
+        if (empty($salt)) {
+            new WP_Error('empty_salt', 'pls add salt');
         }
 
-        if(empty($this->addressList )){
-            new WP_Error('empty_address','pls set addresses array');
+        if (empty($this->addressList)) {
+            new WP_Error('empty_address', 'pls set addresses array');
 
         }
     }
@@ -42,7 +42,9 @@ class SelectCdnAddress
 
         $count = count($this->addressList);
 
-        $index = $this->residue($number, $count) - 1;
+        $index = $this->residue($number, $count);
+
+        $index = $index - 1;
 
         return (isset($this->addressList[$index]) ? $this->addressList[$index] : $this->addressList[0]);
     }
