@@ -17,7 +17,7 @@ class Page
      * Получаем опции из базы
      * @return array
      */
-    public function getOptions()
+    public static function getOptions()
     {
         return get_option(self::$slug, [
             'key' => '',
