@@ -15,6 +15,7 @@ class Reformer {
 
 		add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 10, 3 );
 		add_filter( 'the_content', [ $this, 'postHtml' ] );
+
 	}
 
 	private function checkDomainReplace( $url ) {
@@ -75,14 +76,15 @@ class Reformer {
 		$array = [];
 
 		if ( isset( $images[0] ) && ! empty( $images[0] ) ) {
+
 			foreach ( $images[0] as $image ) {
 
 				$src = $this->getAttribute( 'src', $image );
 
-				if ( $this->checkDomainReplace( $str ) ) {
+				if ( $this->checkDomainReplace( $src ) ) {
 
-					$height = $this->getAttribute( 'height', $image );
-					$width  = $this->getAttribute( 'width', $image );
+					$height        = $this->getAttribute( 'height', $image );
+					$width         = $this->getAttribute( 'width', $image );
 					$array[ $src ] = $this->proxy->builder(
 						[
 							'width'  => $width,
