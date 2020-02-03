@@ -13,9 +13,13 @@ class Reformer {
 
 		$this->proxy = new Builder();
 
-		add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
-		add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
-		add_filter( 'wp_get_attachment_metadata', [ $this, 'srcset' ], 20, 2 );
+		if(isset($_GET['test'])) {
+
+			// TODO wp_calculate_image_srcset тут не должно быть афдыу  для успешной подмены
+			add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
+		}
+//		add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
+//		add_filter( 'wp_get_attachment_metadata', [ $this, 'srcset' ], 20, 2 );
 
 		// так можно обрубить создание миниатюр при загрузке на сайт
 //		add_filter( 'intermediate_image_sizes_advanced', function ( $new_sizes, $image_meta, $attachment_id ) {
@@ -25,30 +29,34 @@ class Reformer {
 //				'thumbnail' => $new_sizes['thumbnail']
 //			];
 //		}, 10, 3 );
+
+//		add_filter( 'wp_get_attachment_image_attributes', function ( $attr, $attachment, $size ) {
+//			if ( $attr['src'] ) {
+//
+//			}
+//
+//			return $attr;
+//		}, 10, 3 );
+	}
+
+
+	public function urlBySourceSizes( $url, $width, $height ) {
+
+		return $this->proxy->builder(
+			[
+				'width'  => empty( $width ) ? 0 : $width,
+				'height' => empty( $height ) ? 0 : $height,
+			],
+			$url
+		);
+
 	}
 
 	public function srcset( $data, $pid ) {
-//		$data['sizes'] = [
-//			'image_1440x540' => [
-//				'file'      => "miniatyura-bol-1440x540.jpg",
-//				'width'     => 1140,
-//				'height'    => 450,
-//				'mime-type' => "image/jpeg",
-//			],
-//			'image_720x290'  => [
-//				'file'      => "miniatyura-bol-720x290.jpg",
-//				'width'     => 720,
-//				'height'    => 290,
-//				'mime-type' => "image/jpeg",
-//			],
-//		];
 
 		if ( 189889 == $pid ) {
 			$sizes = $data['sizes'];
-			d(
-				$data,
-				$sizes
-			);
+			d( $sizes );
 		}
 
 		return $data;
@@ -82,10 +90,6 @@ class Reformer {
 
 		if ( isset( $image[0] ) ) {
 
-			if ( stristr( $image[0], '2020/01/23/miniatyura-bol' ) ) {
-
-			}
-
 			if ( is_string( $size ) ) {
 				$sizeMeta = ( isset( $_wp_additional_image_sizes[ $size ] ) ? $_wp_additional_image_sizes[ $size ] : 0 );
 
@@ -110,7 +114,6 @@ class Reformer {
 
 		return $image;
 	}
-
 
 	public function regexSrc( $str ) {
 		preg_match_all( '~<img.*>~im', $str, $images );
@@ -146,7 +149,6 @@ class Reformer {
 
 		return $str;
 	}
-
 
 	/**
 	 * Get html attribute by name
