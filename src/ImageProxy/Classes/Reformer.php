@@ -41,7 +41,7 @@ class Reformer {
 			return $elem;
 		};
 
-		$funct( [ 'width' => 300, 'height' => 50 ] );
+		d( $funct( [ 'width' => 50, 'height' => 300 ] ) );
 
 		$this->proxy = new Builder();
 
