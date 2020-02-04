@@ -13,13 +13,16 @@ class Reformer {
 
 		$this->proxy = new Builder();
 
-		if(isset($_GET['test'])) {
 
-			// TODO wp_calculate_image_srcset тут не должно быть афдыу  для успешной подмены
-			add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
-		}
-//		add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
-//		add_filter( 'wp_get_attachment_metadata', [ $this, 'srcset' ], 20, 2 );
+		add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
+
+		add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 10, 5 );
+
+
+		add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
+
+		// TODO тут добавляем несуществующие размеры изображений
+//		add_filter( 'wp_get_attachment_metadata', [ $this, 'closure' ], 20, 2 );
 
 		// так можно обрубить создание миниатюр при загрузке на сайт
 //		add_filter( 'intermediate_image_sizes_advanced', function ( $new_sizes, $image_meta, $attachment_id ) {
@@ -52,14 +55,53 @@ class Reformer {
 
 	}
 
-	public function srcset( $data, $pid ) {
+	public function srcset( $sources, $size_array, $image_src, $image_meta, $attachment_id ) {
 
-		if ( 189889 == $pid ) {
-			$sizes = $data['sizes'];
-			d( $sizes );
+		$sizes = $image_meta['sizes'];
+
+		$sizesByName = function ( $name ) use ( $sizes ) {
+			$name = basename( $name );
+
+			foreach ( $sizes as $size ) {
+
+				if ( $name == $size['file'] ) {
+					return $size;
+				}
+			}
+
+			return false;
+		};
+
+		$dirUpload  = wp_get_upload_dir();
+		$originFile = $dirUpload['baseurl'] . "/" . $image_meta['file'];
+
+		$originFile = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $originFile );
+
+		$out = [];
+
+		foreach ( $sources as $source ) {
+			$findSize = $sizesByName( $source['url'] );
+
+			if ( empty( $findSize ) ) {
+				$source['url'] = $image_src;
+			} else {
+
+				$source['url'] = $this->proxy->builder(
+					[
+						'width'  => empty( $findSize['width'] ) ? 0 : $findSize['width'],
+						'height' => empty( $findSize['height'] ) ? 0 : $findSize['height'],
+					],
+					$originFile
+				);
+			}
+
+			$out[] = $source;
 		}
 
-		return $data;
+
+		return $out;
+
+
 	}
 
 	private function checkDomainReplace( $url ) {
@@ -86,6 +128,9 @@ class Reformer {
 	public function src( $image, $attachment_id, $size ) {
 		global $_wp_additional_image_sizes;
 
+
+		$s = "?origin=" . _wp_get_attachment_relative_path( $image[0] . "/" . basename( $image[0] ) );
+
 		$image[0] = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $image['0'] );
 
 		if ( isset( $image[0] ) ) {
@@ -111,6 +156,7 @@ class Reformer {
 			}
 
 		}
+		$image[0] = $image[0] . $s;
 
 		return $image;
 	}
