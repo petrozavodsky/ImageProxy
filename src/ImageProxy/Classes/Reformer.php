@@ -13,15 +13,28 @@ class Reformer {
 			$width  = $elem['width'];
 			$height = $elem['height'];
 
-			if ( $c < $width && $height < $c ) {
+
+			if ( $c <= $width && $c <= $height ) {
+				$out = [];
 
 				if ( $width > $height ) {
 					$p = $width / $height;
+					$i = $width;
 
-					for ( $i = $width; $i > $c; $i = $i - $c ) {
-						d( $i, $i / $p );
+					for ( ; $i > $c; $i = $i - $c ) {
+						$out[] = [ 'width' => $i, 'height' => ( $i / $p ) ];
+					}
+
+				} else {
+					$p = $height / $width;
+					$i = $height;
+
+					for ( ; $i > $c; $i = $i - $c ) {
+						$out[] = [ 'width' => ( $i / $p ), 'height' => $i ];
 					}
 				}
+
+				return $out;
 
 			}
 
@@ -52,7 +65,7 @@ class Reformer {
 					$width  = $elem['width'];
 					$height = $elem['height'];
 
-					if ( $c < $width && $height < $c ) {
+					if ( $c < $width && $c < $height ) {
 
 						if ( $width > $height ) {
 							$p = $width / $height;
@@ -70,7 +83,7 @@ class Reformer {
 				$items = [];
 				foreach ( $_wp_additional_image_sizes as $size ) {
 
-					$funct( $size );
+//					$funct( $size );
 					$width                                      = $size['width'];
 					$height                                     = $size['height'];
 					$items ["_srcset_image_{$width}x{$height}"] = $size;
