@@ -2,14 +2,33 @@
 
 namespace ImageProxy\Classes;
 
-
-use DOMDocument;
-use ImageProxy\Admin\Page;
-
 class Reformer {
 	private $proxy;
 
 	public function __construct() {
+
+		$funct = function ( $elem ) {
+			$c = 50;
+
+			$width  = $elem['width'];
+			$height = $elem['height'];
+
+			if ( $c < $width && $height < $c ) {
+
+				if ( $width > $height ) {
+					$p = $width / $height;
+
+					for ( $i = $width; $i > $c; $i = $i - $c ) {
+						d( $i, $i / $p );
+					}
+				}
+
+			}
+
+			return $elem;
+		};
+
+		$funct( [ 'width' => 300, 'height' => 50 ] );
 
 		$this->proxy = new Builder();
 
@@ -22,7 +41,44 @@ class Reformer {
 		add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
 
 		// TODO тут добавляем несуществующие размеры изображений
-//		add_filter( 'wp_get_attachment_metadata', [ $this, 'closure' ], 20, 2 );
+		add_filter( 'wp_get_attachment_metadata', function ( $data, $pid ) {
+
+			if ( $pid == 189889 ) {
+				global $_wp_additional_image_sizes;
+
+				$funct = function ( $elem ) {
+					$c = 50;
+
+					$width  = $elem['width'];
+					$height = $elem['height'];
+
+					if ( $c < $width && $height < $c ) {
+
+						if ( $width > $height ) {
+							$p = $width / $height;
+
+							for ( $i = $width; $i > $c; $i = $i - $c ) {
+								d( $i, $i / $p );
+							}
+						}
+
+					}
+
+					return $elem;
+				};
+
+				$items = [];
+				foreach ( $_wp_additional_image_sizes as $size ) {
+
+					$funct( $size );
+					$width                                      = $size['width'];
+					$height                                     = $size['height'];
+					$items ["_srcset_image_{$width}x{$height}"] = $size;
+				}
+			}
+
+			return $data;
+		}, 20, 2 );
 
 		// так можно обрубить создание миниатюр при загрузке на сайт
 //		add_filter( 'intermediate_image_sizes_advanced', function ( $new_sizes, $image_meta, $attachment_id ) {
