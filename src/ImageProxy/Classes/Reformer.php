@@ -7,102 +7,104 @@ class Reformer {
 
 	public function __construct() {
 
-		$this->proxy = new Builder();
+		if ( ! is_admin() || wp_doing_ajax() ) {
 
-		add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
+			$this->proxy = new Builder();
 
-		add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 10, 5 );
+			add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
 
+			add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 20, 5 );
 
-		add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
+			add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
 
-		// TODO тут добавляем несуществующие размеры изображений
-		add_filter( 'wp_get_attachment_metadata', function ( $data, $pid ) {
+			add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 1 );
 
-			$sizes = wp_get_additional_image_sizes();
+		}
 
-			$sizes =  array_merge( $sizes, $this->getDefaultImageSize() );
+		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 10, 1 );
 
-			$funct = function ( $elem ) {
-				$c = 50;
+	}
 
-				$width  = $elem['width'];
-				$height = $elem['height'];
+	public function disableGenerateThumbnails( $new_sizes ) {
+		return $this->getDefaultImageSize();
+	}
 
-				if ( $c <= $width && $c <= $height ) {
-					$out = [];
+	/**
+	 * @param $data
+	 * тут добавляем несуществующие размеры изображений
+	 *
+	 * @return mixed
+	 */
+	public function generateVirtualSizes( $data ) {
 
-					if ( $width > $height ) {
-						$p = $width / $height;
-						$i = $width;
+		$sizes = wp_get_additional_image_sizes();
 
-						for ( ; $i > $c; $i = $i - $c ) {
+		$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
 
-							if ( 300 > $i ) {
-								continue;
-							}
+		$funct = function ( $elem ) {
+			$c = 50;
 
-							$out[] = [ 'width' => $i, 'height' => round( $i / $p ) ];
+			$width  = $elem['width'];
+			$height = $elem['height'];
+
+			if ( $c <= $width && $c <= $height ) {
+				$out = [];
+
+				if ( $width > $height ) {
+					$p = $width / $height;
+					$i = $width;
+
+					for ( ; $i > $c; $i = $i - $c ) {
+
+						if ( 300 > $i ) {
+							continue;
 						}
-					} else {
-						$p = $height / $width;
-						$i = $height;
 
-						for ( ; $i > $c; $i = $i - $c ) {
-
-							if ( 300 > $i ) {
-								continue;
-							}
-
-							$out[] = [ 'width' => round( $i / $p ), 'height' => $i ];
-						}
+						$out[] = [ 'width' => $i, 'height' => round( $i / $p ) ];
 					}
+				} else {
+					$p = $height / $width;
+					$i = $height;
 
-					return $out;
-				}
+					for ( ; $i > $c; $i = $i - $c ) {
 
-				return false;
-			};
+						if ( 300 > $i ) {
+							continue;
+						}
 
-			$items = [];
-			foreach ( $sizes as $size ) {
-
-				$width                                      = $size['width'];
-				$height                                     = $size['height'];
-				$items ["_srcset_image_{$width}x{$height}"] = $size;
-
-				$additionalSizes = $funct( $size );
-
-				if ( false !== $additionalSizes ) {
-					foreach ( $additionalSizes as $additionalSize ) {
-						$items ["_srcset_image_{$additionalSize['width']}x{$additionalSize['height']}"] = [
-							'width'  => $additionalSize['width'],
-							'height' => $additionalSize['height'],
-							'crop'   => $size['crop']
-						];
+						$out[] = [ 'width' => round( $i / $p ), 'height' => $i ];
 					}
 				}
 
-				$data['sizes'] = $items;
+				return $out;
 			}
 
-			return $data;
-		}, 20, 2 );
+			return false;
+		};
 
-//		d( get_option( 'tt' ) );
+		$items = [];
+		foreach ( $sizes as $size ) {
 
-		// так можно обрубить создание миниатюр при загрузке на сайт
-		add_filter( 'intermediate_image_sizes_advanced', function ( $new_sizes, $image_meta, $attachment_id ) {
-//			$o = $new_sizes['thumbnail'];
-//			update_option( 'tt', $new_sizes );
+			$width                                      = $size['width'];
+			$height                                     = $size['height'];
+			$items ["_srcset_image_{$width}x{$height}"] = $size;
 
-			return $new_sizes;
-//			return [
-//				'thumbnail' => $new_sizes['thumbnail']
-//			];
-		}, 10, 3 );
+			$additionalSizes = $funct( $size );
 
+			if ( false !== $additionalSizes ) {
+				foreach ( $additionalSizes as $additionalSize ) {
+					$items ["_srcset_image_{$additionalSize['width']}x{$additionalSize['height']}"] = [
+						'width'  => $additionalSize['width'],
+						'height' => $additionalSize['height'],
+						'crop'   => $size['crop']
+					];
+				}
+			}
 
+			$data['sizes'] = $items;
+		}
+
+		return $data;
 	}
 
 	private function getDefaultImageSize() {
@@ -194,7 +196,7 @@ class Reformer {
 	public function src( $image, $attachment_id, $size ) {
 
 		$sizes = wp_get_additional_image_sizes();
-		$sizes =  array_merge( $sizes, $this->getDefaultImageSize() );
+		$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
 
 		$s = "?origin=" . _wp_get_attachment_relative_path( $image[0] . "/" . basename( $image[0] ) );
 
