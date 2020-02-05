@@ -13,7 +13,6 @@ class Reformer {
 			$width  = $elem['width'];
 			$height = $elem['height'];
 
-
 			if ( $c <= $width && $c <= $height ) {
 				$out = [];
 
@@ -24,7 +23,6 @@ class Reformer {
 					for ( ; $i > $c; $i = $i - $c ) {
 						$out[] = [ 'width' => $i, 'height' => ( $i / $p ) ];
 					}
-
 				} else {
 					$p = $height / $width;
 					$i = $height;
@@ -35,7 +33,6 @@ class Reformer {
 				}
 
 				return $out;
-
 			}
 
 			return $elem;
