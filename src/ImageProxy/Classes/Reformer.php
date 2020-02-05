@@ -19,7 +19,9 @@ class Reformer {
 		// TODO тут добавляем несуществующие размеры изображений
 		add_filter( 'wp_get_attachment_metadata', function ( $data, $pid ) {
 
-			global $_wp_additional_image_sizes;
+			$sizes = wp_get_additional_image_sizes();
+
+			$sizes =  array_merge( $sizes, $this->getDefaultImageSize() );
 
 			$funct = function ( $elem ) {
 				$c = 50;
@@ -63,7 +65,7 @@ class Reformer {
 			};
 
 			$items = [];
-			foreach ( $_wp_additional_image_sizes as $size ) {
+			foreach ( $sizes as $size ) {
 
 				$width                                      = $size['width'];
 				$height                                     = $size['height'];
@@ -87,28 +89,39 @@ class Reformer {
 			return $data;
 		}, 20, 2 );
 
+//		d( get_option( 'tt' ) );
+
 		// так можно обрубить создание миниатюр при загрузке на сайт
-//		add_filter( 'intermediate_image_sizes_advanced', function ( $new_sizes, $image_meta, $attachment_id ) {
+		add_filter( 'intermediate_image_sizes_advanced', function ( $new_sizes, $image_meta, $attachment_id ) {
 //			$o = $new_sizes['thumbnail'];
-//
+//			update_option( 'tt', $new_sizes );
+
+			return $new_sizes;
 //			return [
 //				'thumbnail' => $new_sizes['thumbnail']
 //			];
-//		}, 10, 3 );
+		}, 10, 3 );
+
 
 	}
 
+	private function getDefaultImageSize() {
+		$defaultSizes = [ 'thumbnail', 'medium', 'medium_large', 'large' ];
 
-	public function urlBySourceSizes( $url, $width, $height ) {
+		$out = [];
+		foreach ( $defaultSizes as $defaultSize ) {
 
-		return $this->proxy->builder(
-			[
-				'width'  => empty( $width ) ? 0 : $width,
-				'height' => empty( $height ) ? 0 : $height,
-			],
-			$url
-		);
+			$width  = (int) get_option( "{$defaultSize}_size_w", 0 );
+			$height = (int) get_option( "{$defaultSize}_size_h", 0 );
 
+			$out[ $defaultSize ] = [
+				'width'  => $width,
+				'height' => $height,
+				'crop'   => get_option( "{$defaultSize}_crop", false ),
+			];
+		}
+
+		return $out;
 	}
 
 	public function srcset( $sources, $size_array, $image_src, $image_meta, $attachment_id ) {
@@ -154,10 +167,7 @@ class Reformer {
 			$out[] = $source;
 		}
 
-
 		return $out;
-
-
 	}
 
 	private function checkDomainReplace( $url ) {
@@ -182,8 +192,9 @@ class Reformer {
 	}
 
 	public function src( $image, $attachment_id, $size ) {
-		global $_wp_additional_image_sizes;
 
+		$sizes = wp_get_additional_image_sizes();
+		$sizes =  array_merge( $sizes, $this->getDefaultImageSize() );
 
 		$s = "?origin=" . _wp_get_attachment_relative_path( $image[0] . "/" . basename( $image[0] ) );
 
@@ -192,7 +203,7 @@ class Reformer {
 		if ( isset( $image[0] ) ) {
 
 			if ( is_string( $size ) ) {
-				$sizeMeta = ( isset( $_wp_additional_image_sizes[ $size ] ) ? $_wp_additional_image_sizes[ $size ] : 0 );
+				$sizeMeta = ( isset( $sizes[ $size ] ) ? $sizes[ $size ] : 0 );
 
 				$image[0] = $this->proxy->builder(
 					[
