@@ -7,41 +7,7 @@ class Reformer {
 
 	public function __construct() {
 
-		$funct = function ( $elem ) {
-			$c = 50;
-
-			$width  = $elem['width'];
-			$height = $elem['height'];
-
-			if ( $c <= $width && $c <= $height ) {
-				$out = [];
-
-				if ( $width > $height ) {
-					$p = $width / $height;
-					$i = $width;
-
-					for ( ; $i > $c; $i = $i - $c ) {
-						$out[] = [ 'width' => $i, 'height' => ( $i / $p ) ];
-					}
-				} else {
-					$p = $height / $width;
-					$i = $height;
-
-					for ( ; $i > $c; $i = $i - $c ) {
-						$out[] = [ 'width' => ( $i / $p ), 'height' => $i ];
-					}
-				}
-
-				return $out;
-			}
-
-			return $elem;
-		};
-
-		d( $funct( [ 'width' => 50, 'height' => 300 ] ) );
-
 		$this->proxy = new Builder();
-
 
 		add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
 
@@ -53,38 +19,69 @@ class Reformer {
 		// TODO тут добавляем несуществующие размеры изображений
 		add_filter( 'wp_get_attachment_metadata', function ( $data, $pid ) {
 
-			if ( $pid == 189889 ) {
-				global $_wp_additional_image_sizes;
+			global $_wp_additional_image_sizes;
 
-				$funct = function ( $elem ) {
-					$c = 50;
+			$funct = function ( $elem ) {
+				$c = 50;
 
-					$width  = $elem['width'];
-					$height = $elem['height'];
+				$width  = $elem['width'];
+				$height = $elem['height'];
 
-					if ( $c < $width && $c < $height ) {
+				if ( $c <= $width && $c <= $height ) {
+					$out = [];
 
-						if ( $width > $height ) {
-							$p = $width / $height;
+					if ( $width > $height ) {
+						$p = $width / $height;
+						$i = $width;
 
-							for ( $i = $width; $i > $c; $i = $i - $c ) {
-								d( $i, $i / $p );
+						for ( ; $i > $c; $i = $i - $c ) {
+
+							if ( 300 > $i ) {
+								continue;
 							}
-						}
 
+							$out[] = [ 'width' => $i, 'height' => round( $i / $p ) ];
+						}
+					} else {
+						$p = $height / $width;
+						$i = $height;
+
+						for ( ; $i > $c; $i = $i - $c ) {
+
+							if ( 300 > $i ) {
+								continue;
+							}
+
+							$out[] = [ 'width' => round( $i / $p ), 'height' => $i ];
+						}
 					}
 
-					return $elem;
-				};
-
-				$items = [];
-				foreach ( $_wp_additional_image_sizes as $size ) {
-
-//					$funct( $size );
-					$width                                      = $size['width'];
-					$height                                     = $size['height'];
-					$items ["_srcset_image_{$width}x{$height}"] = $size;
+					return $out;
 				}
+
+				return false;
+			};
+
+			$items = [];
+			foreach ( $_wp_additional_image_sizes as $size ) {
+
+				$width                                      = $size['width'];
+				$height                                     = $size['height'];
+				$items ["_srcset_image_{$width}x{$height}"] = $size;
+
+				$additionalSizes = $funct( $size );
+
+				if ( false !== $additionalSizes ) {
+					foreach ( $additionalSizes as $additionalSize ) {
+						$items ["_srcset_image_{$additionalSize['width']}x{$additionalSize['height']}"] = [
+							'width'  => $additionalSize['width'],
+							'height' => $additionalSize['height'],
+							'crop'   => $size['crop']
+						];
+					}
+				}
+
+				$data['sizes'] = $items;
 			}
 
 			return $data;
@@ -99,13 +96,6 @@ class Reformer {
 //			];
 //		}, 10, 3 );
 
-//		add_filter( 'wp_get_attachment_image_attributes', function ( $attr, $attachment, $size ) {
-//			if ( $attr['src'] ) {
-//
-//			}
-//
-//			return $attr;
-//		}, 10, 3 );
 	}
 
 
