@@ -93,39 +93,54 @@ class Reformer {
 
 			$items = [];
 
-			foreach ( $sizes as $size ) {
+//			foreach ( $sizes as $size ) {
+//
+//				if ( ! empty( $size['width'] ) && ! empty( $size['height'] ) ) {
+//					$items ["_srcset_image_{$size['width']}x{$size['height']}"] = [
+//						'file'      => $data['file'],
+//						'width'     => $size['width'],
+//						'height'    => $size['height'],
+//						'mime-type' => $mimeType,
+//					];
+//				}
+//
+////				$additionalSizes = $funct( $size );
+////
+////				if ( false !== $additionalSizes ) {
+////					foreach ( $additionalSizes as $additionalSize ) {
+////						if ( ! empty( $additionalSize['width'] ) && ! empty( $additionalSize['height'] ) ) {
+////							$items ["_srcset_image_{$additionalSize['width']}x{$additionalSize['height']}"] = [
+////								'file'      => $data['file'],
+////								'width'     => $additionalSize['width'],
+////								'height'    => $additionalSize['height'],
+////								'mime-type' => $mimeType,
+////							];
+////						}
+////					}
+////				}
+//			}
 
-				if ( ! empty( $size['width'] ) && ! empty( $size['height'] ) ) {
-					$items ["_srcset_image_{$size['width']}x{$size['height']}"] = [
-						'file'      => $data['file'],
-						'width'     => $size['width'],
-						'height'    => $size['height'],
-						'mime-type' => $mimeType,
-					];
-				}
+			$items = [
+				"_srcset_image_360x145" => [
+					'file'      => "2020/01/21/miniatyura-bol.png",
+					'width'     => 360,
+					'height'    => 145,
+					'mime-type' => "image/png",
+				],
+				"_srcset_image_180x71" => [
+					'file'      => "2020/01/21/miniatyura-bol.png",
+					'width'     => 180,
+					'height'    => 71,
+					'mime-type' => "image/png",
+				]
+			];
 
-				$additionalSizes = $funct( $size );
-
-				if ( false !== $additionalSizes ) {
-					foreach ( $additionalSizes as $additionalSize ) {
-						if ( ! empty( $additionalSize['width'] ) && ! empty( $additionalSize['height'] ) ) {
-							$items ["_srcset_image_{$additionalSize['width']}x{$additionalSize['height']}"] = [
-								'file'      => $data['file'],
-								'width'     => $additionalSize['width'],
-								'height'    => $additionalSize['height'],
-								'mime-type' => $mimeType,
-							];
-						}
-					}
-				}
-
-				$data['sizes'] = $items;
-			}
+			$data['sizes'] = $items;
 		}
 
-		if ( 189743 == $pid ) {
-			d( $data );
-		}
+//		if ( 189743 == $pid ) {
+//			d( $data );
+//		}
 
 		return $data;
 	}
