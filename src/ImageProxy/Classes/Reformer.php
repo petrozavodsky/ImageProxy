@@ -40,86 +40,91 @@ class Reformer {
 	 */
 	public function generateVirtualSizes( $data, $pid ) {
 
-		$mimeTypes = wp_get_mime_types();
-		$mimeType  = get_post_mime_type( $pid );
-		$extension = "." . array_search( $mimeType, $mimeTypes );
+		if ( 189743 != $pid ) {
+			return $data;
+		}
 
-		$sizes = wp_get_additional_image_sizes();
+		if ( isset( $_GET['test'] ) ) {
+			$sizes    = wp_get_additional_image_sizes();
+			$mimeType = get_post_mime_type( $pid );
 
-		$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
+			$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
 
-		$funct = function ( $elem ) {
-			$c = 50;
+			$funct = function ( $elem ) use ( $mimeType, $data ) {
+				$c = 50;
 
-			$width  = $elem['width'];
-			$height = $elem['height'];
+				$width  = $elem['width'];
+				$height = $elem['height'];
 
-			if ( $c <= $width && $c <= $height ) {
-				$out = [];
+				if ( $c <= $width && $c <= $height ) {
+					$out = [];
 
-				if ( $width > $height ) {
-					$p = $width / $height;
-					$i = $width;
+					if ( $width > $height ) {
+						$p = $width / $height;
+						$i = $width;
 
-					for ( ; $i > $c; $i = $i - $c ) {
-
-						if ( 300 > $i ) {
-							continue;
+						for ( ; $i > $c; $i = $i - $c ) {
+							if ( 300 < $i ) {
+								$out[] = [
+									'width'  => round( $i / $p ),
+									'height' => $i,
+								];
+							}
 						}
+					} else {
+						$p = $height / $width;
+						$i = $height;
 
-						$out[] = [ 'width' => $i, 'height' => round( $i / $p ) ];
-					}
-				} else {
-					$p = $height / $width;
-					$i = $height;
-
-					for ( ; $i > $c; $i = $i - $c ) {
-
-						if ( 300 > $i ) {
-							continue;
+						for ( ; $i > $c; $i = $i - $c ) {
+							if ( 300 < $i ) {
+								$out[] = [
+									'width'  => round( $i / $p ),
+									'height' => $i,
+								];
+							}
 						}
-
-						$out[] = [ 'width' => round( $i / $p ), 'height' => $i ];
 					}
+
+					return $out;
 				}
 
-				return $out;
-			}
+				return false;
+			};
 
-			return false;
-		};
+			$items = [];
 
-		$items = [];
+			foreach ( $sizes as $size ) {
 
-//		if ( 189743 == $pid ) {
-//			d( $data['file'] );
-//		}
-
-		foreach ( $sizes as $size ) {
-
-			$width                                      = $size['width'];
-			$height                                     = $size['height'];
-			$size['mime-type']                  = $mimeType;
-			$size['file']                       = $data['file'];
-			$items ["image_{$width}x{$height}"] = $size;
-
-			$additionalSizes = $funct( $size );
-
-			if ( false !== $additionalSizes ) {
-				foreach ( $additionalSizes as $additionalSize ) {
-					$items ["_srcset_image_{$additionalSize['width']}x{$additionalSize['height']}"] = [
-						'width'  => $additionalSize['width'],
-						'height' => $additionalSize['height'],
-						'crop'   => $size['crop']
+				if ( ! empty( $size['width'] ) && ! empty( $size['height'] ) ) {
+					$items ["_srcset_image_{$size['width']}x{$size['height']}"] = [
+						'file'      => $data['file'],
+						'width'     => $size['width'],
+						'height'    => $size['height'],
+						'mime-type' => $mimeType,
 					];
 				}
-			}
 
-			if ( ! empty( $width ) && ! empty( $height ) ) {
+				$additionalSizes = $funct( $size );
+
+				if ( false !== $additionalSizes ) {
+					foreach ( $additionalSizes as $additionalSize ) {
+						if ( ! empty( $additionalSize['width'] ) && ! empty( $additionalSize['height'] ) ) {
+							$items ["_srcset_image_{$additionalSize['width']}x{$additionalSize['height']}"] = [
+								'file'      => $data['file'],
+								'width'     => $additionalSize['width'],
+								'height'    => $additionalSize['height'],
+								'mime-type' => $mimeType,
+							];
+						}
+					}
+				}
+
 				$data['sizes'] = $items;
 			}
+		}
 
-			$data['sizes'] = $items;
+		if ( 189743 == $pid ) {
+			d( $data );
 		}
 
 		return $data;
