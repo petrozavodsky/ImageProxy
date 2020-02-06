@@ -19,15 +19,13 @@ class Reformer {
 
 				add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
 
-				add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 1 );
+				add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 2 );
 
 			}
 
 		}
 
-
 		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 10, 1 );
-
 	}
 
 	public function disableGenerateThumbnails( $new_sizes ) {
@@ -40,7 +38,11 @@ class Reformer {
 	 *
 	 * @return mixed
 	 */
-	public function generateVirtualSizes( $data ) {
+	public function generateVirtualSizes( $data, $pid ) {
+
+		$mimeTypes = wp_get_mime_types();
+		$mimeType  = get_post_mime_type( $pid );
+		$extension = "." . array_search( $mimeType, $mimeTypes );
 
 		$sizes = wp_get_additional_image_sizes();
 
@@ -88,11 +90,18 @@ class Reformer {
 		};
 
 		$items = [];
+
+//		if ( 189743 == $pid ) {
+//			d( $data['file'] );
+//		}
+
 		foreach ( $sizes as $size ) {
 
 			$width                                      = $size['width'];
 			$height                                     = $size['height'];
-			$items ["_srcset_image_{$width}x{$height}"] = $size;
+			$size['mime-type']                  = $mimeType;
+			$size['file']                       = $data['file'];
+			$items ["image_{$width}x{$height}"] = $size;
 
 			$additionalSizes = $funct( $size );
 
@@ -104,6 +113,10 @@ class Reformer {
 						'crop'   => $size['crop']
 					];
 				}
+			}
+
+			if ( ! empty( $width ) && ! empty( $height ) ) {
+				$data['sizes'] = $items;
 			}
 
 			$data['sizes'] = $items;
