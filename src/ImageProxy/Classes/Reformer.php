@@ -9,17 +9,22 @@ class Reformer {
 
 		if ( ! is_admin() || wp_doing_ajax() ) {
 
-			$this->proxy = new Builder();
+			if ( ! is_blog_admin() ) {
 
-			add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
+				$this->proxy = new Builder();
 
-			add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 20, 5 );
+				add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
 
-			add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
+				add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 20, 5 );
 
-			add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 1 );
+				add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
+
+				add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 1 );
+
+			}
 
 		}
+
 
 		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 10, 1 );
 
