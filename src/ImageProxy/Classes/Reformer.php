@@ -31,7 +31,7 @@ class Reformer {
 
 	/**
 	 * @param $data
-	 * тут добавляем несуществующие размеры изображений
+	 * Тут добавляем несуществующие размеры изображений
 	 *
 	 * @return mixed
 	 */
@@ -107,6 +107,11 @@ class Reformer {
 		return $data;
 	}
 
+	/**
+	 * @return array
+	 *
+	 * Получаем размеры стандарных миниатюр
+	 */
 	private function getDefaultImageSize() {
 		$defaultSizes = [ 'thumbnail', 'medium', 'medium_large', 'large' ];
 
