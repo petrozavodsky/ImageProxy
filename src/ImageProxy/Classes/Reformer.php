@@ -7,141 +7,99 @@ class Reformer {
 
 	public function __construct() {
 
-		if ( ! is_admin() || wp_doing_ajax() ) {
+		if ( isset( $_GET['test'] ) ) {
+			if ( ! is_admin() || wp_doing_ajax() ) {
 
-			if ( ! is_blog_admin() ) {
+				if ( ! is_blog_admin() ) {
 
-				$this->proxy = new Builder();
+					$this->proxy = new Builder();
 
-				add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
+					add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
 
-				add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 20, 5 );
+					add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 20, 5 );
 
-				add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
+					add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
 
-				add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 2 );
+					$this->generateVirtualSizes();
+				}
+
 			}
 
+//			add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 10, 1 );
 		}
-
-		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 10, 1 );
 	}
 
 	public function disableGenerateThumbnails( $new_sizes ) {
 		return $this->getDefaultImageSize();
 	}
 
-	/**
-	 * @param $data
-	 * Тут добавляем несуществующие размеры изображений
-	 *
-	 * @return mixed
-	 */
-	public function generateVirtualSizes( $data, $pid ) {
+	public function generateVirtualSizes() {
+		$sizes = wp_get_additional_image_sizes();
+		$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
 
-		if ( 189743 != $pid ) {
-			return $data;
-		}
+		$funct = function ( $elem ) {
+			$c = 50;
 
-		if ( isset( $_GET['test'] ) ) {
-			$sizes    = wp_get_additional_image_sizes();
-			$mimeType = get_post_mime_type( $pid );
+			$crop   = $elem['crop'];
+			$width  = $elem['width'];
+			$height = $elem['height'];
 
-			$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
+			if ( $c <= $width && $c <= $height ) {
+				$out = [];
 
-			$funct = function ( $elem ) use ( $mimeType, $data ) {
-				$c = 50;
+				d( $width > $height );
+				d( $width, $height );
 
-				$width  = $elem['width'];
-				$height = $elem['height'];
+				if ( $width > $height ) {
+					$p = $width / $height;
+					$i = $width;
 
-				if ( $c <= $width && $c <= $height ) {
-					$out = [];
+					d( $p, $i );
 
-					if ( $width > $height ) {
-						$p = $width / $height;
-						$i = $width;
-
-						for ( ; $i > $c; $i = $i - $c ) {
-							if ( 300 < $i ) {
-								$out[] = [
-									'width'  => round( $i / $p ),
-									'height' => $i,
-								];
-							}
-						}
-					} else {
-						$p = $height / $width;
-						$i = $height;
-
-						for ( ; $i > $c; $i = $i - $c ) {
-							if ( 300 < $i ) {
-								$out[] = [
-									'width'  => round( $i / $p ),
-									'height' => $i,
-								];
-							}
+					for ( ; $i > $c; $i = $i - $c ) {
+						if ( $c < $i ) {
+							$out["_image{$width}x{$height}"] = [
+								'width'  => round( $i / $p ),
+								'height' => $i,
+								'crop'   => $crop,
+							];
 						}
 					}
+				} else {
+					$p = $height / $width;
+					$i = $height;
 
-					return $out;
+					for ( ; $i > $c; $i = $i - $c ) {
+						if ( $c < $i ) {
+							$out["_image{$width}x{$height}"] = [
+								'width'  => round( $i / $p ),
+								'height' => $i,
+								'crop'   => $crop,
+							];
+						}
+					}
 				}
 
-				return false;
-			};
+				if ( ! empty( $out ) ) {
+					return $out;
+				}
+			}
 
-			$items = [];
+			return false;
+		};
 
-//			foreach ( $sizes as $size ) {
+		$adinational = [];
+		foreach ( $sizes as $key => $val ) {
+			$adinational[ $key ] = $val;
+//			$tmp                 = $funct( $val );
 //
-//				if ( ! empty( $size['width'] ) && ! empty( $size['height'] ) ) {
-//					$items ["_srcset_image_{$size['width']}x{$size['height']}"] = [
-//						'file'      => $data['file'],
-//						'width'     => $size['width'],
-//						'height'    => $size['height'],
-//						'mime-type' => $mimeType,
-//					];
-//				}
-//
-////				$additionalSizes = $funct( $size );
-////
-////				if ( false !== $additionalSizes ) {
-////					foreach ( $additionalSizes as $additionalSize ) {
-////						if ( ! empty( $additionalSize['width'] ) && ! empty( $additionalSize['height'] ) ) {
-////							$items ["_srcset_image_{$additionalSize['width']}x{$additionalSize['height']}"] = [
-////								'file'      => $data['file'],
-////								'width'     => $additionalSize['width'],
-////								'height'    => $additionalSize['height'],
-////								'mime-type' => $mimeType,
-////							];
-////						}
-////					}
-////				}
+//			if ( false !== $tmp ) {
+//				$adinational = array_merge( $adinational, $tmp );
 //			}
-
-			$items = [
-				"_srcset_image_360x145" => [
-					'file'      => "2020/01/21/miniatyura-bol.png",
-					'width'     => 360,
-					'height'    => 145,
-					'mime-type' => "image/png",
-				],
-				"_srcset_image_180x71" => [
-					'file'      => "2020/01/21/miniatyura-bol.png",
-					'width'     => 180,
-					'height'    => 71,
-					'mime-type' => "image/png",
-				]
-			];
-
-			$data['sizes'] = $items;
 		}
 
-//		if ( 189743 == $pid ) {
-//			d( $data );
-//		}
+		$funct( $adinational['image_720x290'] );
 
-		return $data;
 	}
 
 	/**
