@@ -20,7 +20,6 @@ class Reformer {
 				add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
 
 				add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 2 );
-
 			}
 
 		}
