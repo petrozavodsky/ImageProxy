@@ -2,27 +2,27 @@
 
 namespace ImageProxy\Classes;
 
+
+//TODO сделать так чтоб если картинка маленькая то дефолтные большие размеры к ней не применялись
+
 class Reformer {
 	private $proxy;
 
 	public function __construct() {
 
-		if ( isset( $_GET['test'] ) ) {
-			if ( ! is_admin() || wp_doing_ajax() ) {
+		if ( ! is_admin() || wp_doing_ajax() ) {
 
-				if ( ! is_blog_admin() ) {
+			if ( ! is_blog_admin() ) {
 
-					$this->proxy = new Builder();
+				$this->proxy = new Builder();
 
-					add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
+				add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
 
-					add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 20, 5 );
+				add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 20, 5 );
 
-					add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
+				add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
 
-					add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 2 );
-
-				}
+				add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 2 );
 
 			}
 
@@ -232,9 +232,8 @@ class Reformer {
 
 		preg_match( $pattern, $url, $matches );
 
-		if ( isset( $_GET['test'] ) ) {
-			return true;
-		}
+		// TODO remove
+		return true;
 
 		if ( empty( $matches ) ) {
 			return false;
@@ -305,9 +304,8 @@ class Reformer {
 
 					$imageSrc = $src;
 
-					if ( isset( $_GET['test'] ) ) {
-						$imageSrc = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $imageSrc );
-					}
+					// TODO remove
+					$imageSrc = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $imageSrc );
 
 					$array[ $src ] = $this->proxy->builder(
 						[
