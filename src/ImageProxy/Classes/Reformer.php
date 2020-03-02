@@ -38,19 +38,16 @@ class Reformer {
 
 	public function generateVirtualSizes( $data, $id ) {
 
-		if ( 187603 != $id ) {
-			return $data;
-		}
 
 		$sizes    = wp_get_additional_image_sizes();
 		$sizes    = array_merge( $sizes, $this->getDefaultImageSize() );
 		$baseName = basename( $data['file'] );
 
 		$funct = function ( $elem ) use ( $baseName, $id ) {
-			$c = 50;
-
+			$c      = 50;
 			$width  = $elem['width'];
 			$height = $elem['height'];
+			$out    = [];
 
 			if ( $c <= $width && $c <= $height ) {
 
@@ -63,14 +60,17 @@ class Reformer {
 
 						if ( $c < $i ) {
 
-							$out["image_{$width}x{$height}"] = [
+							$w = $i;
+							$h = (int) round( $w / $p );
+
+							$out["image_{$w}x{$h}"] = [
 								'file'      => preg_replace(
 									'/(\..*$)/i',
-									"-{$width}x{$height}$1",
+									"-{$w}x{$h}$1",
 									$baseName
 								),
-								'width'     => $i,
-								'height'    => (int) round( $i / $p ),
+								'width'     => $w,
+								'height'    => $h,
 								'mime-type' => get_post_mime_type( $id )
 							];
 						}
@@ -82,14 +82,17 @@ class Reformer {
 
 					for ( ; $i > $c; $i = $i - $c ) {
 						if ( $c < $i ) {
+							$h = $i;
+							$w = (int) round( $h / $p );
+
 							$out["image_{$width}x{$height}"] = [
 								'file'      => preg_replace(
 									'/(\..*$)/i',
-									"-{$width}x{$height}$1",
+									"-{$w}x{$h}$1",
 									$baseName
 								),
-								'width'     => $i,
-								'height'    => (int) round( $i / $p ),
+								'width'     => $w,
+								'height'    => $h,
 								'mime-type' => get_post_mime_type( $id )
 							];
 						}
@@ -135,18 +138,16 @@ class Reformer {
 
 			$adinational[ $key ] = $val;
 
-			d( $val );
 			$tmp = $funct( $val );
 
 			if ( false !== $tmp ) {
-//				$adinational = array_merge( $adinational, $tmp );
+				$adinational = array_merge( $adinational, $tmp );
 			}
 
 		}
 
 
 		$data['sizes'] = $adinational;
-
 
 		return $data;
 
