@@ -20,61 +20,77 @@ class Reformer {
 
 					add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
 
-					$this->generateVirtualSizes();
+					add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 2 );
+
 				}
 
 			}
 
-//			add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 10, 1 );
 		}
+
+		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 10, 1 );
+
 	}
 
 	public function disableGenerateThumbnails( $new_sizes ) {
 		return $this->getDefaultImageSize();
 	}
 
-	public function generateVirtualSizes() {
-		$sizes = wp_get_additional_image_sizes();
-		$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
+	public function generateVirtualSizes( $data, $id ) {
 
-		$funct = function ( $elem ) {
+		if ( 187603 != $id ) {
+			return $data;
+		}
+
+		$sizes    = wp_get_additional_image_sizes();
+		$sizes    = array_merge( $sizes, $this->getDefaultImageSize() );
+		$baseName = basename( $data['file'] );
+
+		$funct = function ( $elem ) use ( $baseName, $id ) {
 			$c = 50;
 
-			$crop   = $elem['crop'];
 			$width  = $elem['width'];
 			$height = $elem['height'];
 
 			if ( $c <= $width && $c <= $height ) {
-				$out = [];
-
-				d( $width > $height );
-				d( $width, $height );
 
 				if ( $width > $height ) {
 					$p = $width / $height;
 					$i = $width;
 
-					d( $p, $i );
 
 					for ( ; $i > $c; $i = $i - $c ) {
+
 						if ( $c < $i ) {
-							$out["_image{$width}x{$height}"] = [
-								'width'  => round( $i / $p ),
-								'height' => $i,
-								'crop'   => $crop,
+
+							$out["image_{$width}x{$height}"] = [
+								'file'      => preg_replace(
+									'/(\..*$)/i',
+									"-{$width}x{$height}$1",
+									$baseName
+								),
+								'width'     => $i,
+								'height'    => (int) round( $i / $p ),
+								'mime-type' => get_post_mime_type( $id )
 							];
 						}
 					}
+
 				} else {
 					$p = $height / $width;
 					$i = $height;
 
 					for ( ; $i > $c; $i = $i - $c ) {
 						if ( $c < $i ) {
-							$out["_image{$width}x{$height}"] = [
-								'width'  => round( $i / $p ),
-								'height' => $i,
-								'crop'   => $crop,
+							$out["image_{$width}x{$height}"] = [
+								'file'      => preg_replace(
+									'/(\..*$)/i',
+									"-{$width}x{$height}$1",
+									$baseName
+								),
+								'width'     => $i,
+								'height'    => (int) round( $i / $p ),
+								'mime-type' => get_post_mime_type( $id )
 							];
 						}
 					}
@@ -88,17 +104,51 @@ class Reformer {
 			return false;
 		};
 
-		$adinational = [];
+		$newSizes = [];
 		foreach ( $sizes as $key => $val ) {
-			$adinational[ $key ] = $val;
-//			$tmp                 = $funct( $val );
-//
-//			if ( false !== $tmp ) {
-//				$adinational = array_merge( $adinational, $tmp );
-//			}
+			$p = $data['width'] / $data['height'];
+
+			unset( $val['crop'] );
+
+			$newSizes[ $key ] = array_merge(
+				[ 'file' => $baseName ],
+				$val,
+				[ 'mime-type' => get_post_mime_type( $id ) ]
+			);
+
+			if ( empty( $val['height'] ) ) {
+
+				if ( ! empty( $newSizes[ $key ]['width'] ) ) {
+					$newSizes[ $key ]['height'] = (int) round( $data['width'] / $p );
+				}
+			}
+
+			$newSizes[ $key ]['file'] = preg_replace(
+				'/(\..*$)/i',
+				"-{$newSizes[ $key ]['width']}x{$newSizes[ $key ]['height']}$1",
+				$baseName
+			);
+
 		}
 
-		$funct( $adinational['image_720x290'] );
+		foreach ( $newSizes as $key => $val ) {
+
+			$adinational[ $key ] = $val;
+
+			d( $val );
+			$tmp = $funct( $val );
+
+			if ( false !== $tmp ) {
+//				$adinational = array_merge( $adinational, $tmp );
+			}
+
+		}
+
+
+		$data['sizes'] = $adinational;
+
+
+		return $data;
 
 	}
 
@@ -181,9 +231,14 @@ class Reformer {
 
 		preg_match( $pattern, $url, $matches );
 
+		if ( isset( $_GET['test'] ) ) {
+			return true;
+		}
+
 		if ( empty( $matches ) ) {
 			return false;
 		}
+
 
 		return true;
 	}
@@ -241,16 +296,24 @@ class Reformer {
 
 				$src = $this->getAttribute( 'src', $image );
 
+
 				if ( $this->checkDomainReplace( $src ) ) {
 
-					$height        = $this->getAttribute( 'height', $image );
-					$width         = $this->getAttribute( 'width', $image );
+					$height = $this->getAttribute( 'height', $image );
+					$width  = $this->getAttribute( 'width', $image );
+
+					$imageSrc = $src;
+
+					if ( isset( $_GET['test'] ) ) {
+						$imageSrc = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $imageSrc );
+					}
+
 					$array[ $src ] = $this->proxy->builder(
 						[
 							'width'  => $width,
 							'height' => $height
 						],
-						$src
+						$imageSrc
 					);
 
 				}
