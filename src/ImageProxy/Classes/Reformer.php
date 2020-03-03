@@ -38,7 +38,6 @@ class Reformer {
 
 	public function generateVirtualSizes( $data, $id ) {
 
-
 		$sizes    = wp_get_additional_image_sizes();
 		$sizes    = array_merge( $sizes, $this->getDefaultImageSize() );
 		$baseName = basename( $data['file'] );
@@ -146,7 +145,6 @@ class Reformer {
 
 		}
 
-
 		$data['sizes'] = $adinational;
 
 		return $data;
@@ -177,9 +175,9 @@ class Reformer {
 		return $out;
 	}
 
-	public function srcset( $sources, $size_array, $image_src, $image_meta, $attachment_id ) {
+	public function srcset( $sources, $sizeArray, $imageSrc, $imageMeta, $id ) {
 
-		$sizes = $image_meta['sizes'];
+		$sizes = $imageMeta['sizes'];
 
 		$sizesByName = function ( $name ) use ( $sizes ) {
 			$name = basename( $name );
@@ -195,7 +193,7 @@ class Reformer {
 		};
 
 		$dirUpload  = wp_get_upload_dir();
-		$originFile = $dirUpload['baseurl'] . "/" . $image_meta['file'];
+		$originFile = $dirUpload['baseurl'] . "/" . $imageMeta['file'];
 
 		$originFile = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $originFile );
 
@@ -204,8 +202,12 @@ class Reformer {
 		foreach ( $sources as $source ) {
 			$findSize = $sizesByName( $source['url'] );
 
+			if ( in_array( $id, [ 187605, 187603 ] ) ) {
+				d( $source['url'] );
+			}
+
 			if ( empty( $findSize ) ) {
-				$source['url'] = $image_src;
+				$source['url'] = $imageSrc;
 			} else {
 
 				$source['url'] = $this->proxy->builder(
