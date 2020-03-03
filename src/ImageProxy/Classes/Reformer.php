@@ -7,6 +7,7 @@ class Reformer {
 
 	private $proxy;
 
+	//TODO порешать с фавиконкой
 	public function __construct() {
 
 		if ( ! is_admin() || wp_doing_ajax() ) {
