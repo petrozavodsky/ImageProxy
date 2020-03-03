@@ -2,3 +2,4 @@
 /node_modules/
 /public/css/maps/
 .Ds_store
+/vendor/

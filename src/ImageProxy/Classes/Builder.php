@@ -56,7 +56,7 @@ class Builder
         return array_map('trim', $array);
     }
 
-    private function sign($path)
+    public function sign($path)
     {
         $keyBin = pack("H*", $this->key);
         if (empty($keyBin)) {

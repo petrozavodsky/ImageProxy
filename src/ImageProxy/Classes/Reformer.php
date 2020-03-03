@@ -194,8 +194,6 @@ class Reformer {
 		$dirUpload  = wp_get_upload_dir();
 		$originFile = $dirUpload['baseurl'] . "/" . $imageMeta['file'];
 
-		$originFile = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $originFile );
-
 		$out = [];
 
 		foreach ( $sources as $source ) {
@@ -229,9 +227,6 @@ class Reformer {
 
 		preg_match( $pattern, $url, $matches );
 
-		// TODO remove
-		return true;
-
 		if ( empty( $matches ) ) {
 			return false;
 		}
@@ -251,8 +246,6 @@ class Reformer {
 		$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
 
 		$s = "?origin=" . _wp_get_attachment_relative_path( $image[0] . "/" . basename( $image[0] ) );
-
-		$image[0] = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $image['0'] );
 
 		if ( isset( $image[0] ) ) {
 
@@ -300,9 +293,6 @@ class Reformer {
 					$width  = $this->getAttribute( 'width', $image );
 
 					$imageSrc = $src;
-
-					// TODO remove
-					$imageSrc = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $imageSrc );
 
 					$array[ $src ] = $this->proxy->builder(
 						[
