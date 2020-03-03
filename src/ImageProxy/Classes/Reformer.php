@@ -3,9 +3,8 @@
 namespace ImageProxy\Classes;
 
 
-//TODO сделать так чтоб если картинка маленькая то дефолтные большие размеры к ней не применялись
-
 class Reformer {
+
 	private $proxy;
 
 	public function __construct() {
@@ -42,7 +41,7 @@ class Reformer {
 		$sizes    = array_merge( $sizes, $this->getDefaultImageSize() );
 		$baseName = basename( $data['file'] );
 
-		$funct = function ( $elem ) use ( $baseName, $id ) {
+		$virtualSizesGenerate = function ( $elem ) use ( $baseName, $id ) {
 			$c      = 50;
 			$width  = $elem['width'];
 			$height = $elem['height'];
@@ -137,7 +136,7 @@ class Reformer {
 
 			$adinational[ $key ] = $val;
 
-			$tmp = $funct( $val );
+			$tmp = $virtualSizesGenerate( $val );
 
 			if ( false !== $tmp ) {
 				$adinational = array_merge( $adinational, $tmp );
@@ -201,10 +200,6 @@ class Reformer {
 
 		foreach ( $sources as $source ) {
 			$findSize = $sizesByName( $source['url'] );
-
-			if ( in_array( $id, [ 187605, 187603 ] ) ) {
-				d( $source['url'] );
-			}
 
 			if ( empty( $findSize ) ) {
 				$source['url'] = $imageSrc;
