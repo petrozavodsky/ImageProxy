@@ -172,6 +172,54 @@ class Reformer {
 			];
 		}
 
+		$out["image_512x512"] = [
+			'width'  => 512,
+			'height' => 512,
+			'crop'   => true,
+		];
+
+		$out["image_270x270"] = [
+			'width'  => 270,
+			'height' => 270,
+			'crop'   => true,
+		];
+
+		$out["image_192x192"] = [
+			'width'  => 192,
+			'height' => 192,
+			'crop'   => true,
+		];
+
+		$out["image_180x180"] = [
+			'width'  => 180,
+			'height' => 180,
+			'crop'   => true,
+		];
+
+		$out["image_152x152"] = [
+			'width'  => 152,
+			'height' => 152,
+			'crop'   => true,
+		];
+
+		$out["image_120x120"] = [
+			'width'  => 120,
+			'height' => 120,
+			'crop'   => true,
+		];
+
+		$out["image_76x76"] = [
+			'width'  => 76,
+			'height' => 76,
+			'crop'   => true,
+		];
+
+		$out["image_32x32"] = [
+			'width'  => 32,
+			'height' => 32,
+			'crop'   => true,
+		];
+
 		return $out;
 	}
 
@@ -241,7 +289,7 @@ class Reformer {
 		return $this->regexSrc( $html );
 	}
 
-	public function src( $image, $attachment_id, $size ) {
+	public function src( $image, $id, $size ) {
 
 		$sizes = wp_get_additional_image_sizes();
 		$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
@@ -249,6 +297,7 @@ class Reformer {
 		$s = "?origin=" . _wp_get_attachment_relative_path( $image[0] . "/" . basename( $image[0] ) );
 
 		if ( isset( $image[0] ) ) {
+
 
 			if ( is_string( $size ) ) {
 				$sizeMeta = ( isset( $sizes[ $size ] ) ? $sizes[ $size ] : 0 );
@@ -261,16 +310,19 @@ class Reformer {
 					$image[0]
 				);
 			} elseif ( is_array( $size ) ) {
+				$url = wp_get_attachment_url( $id );
+
 				$image[0] = $this->proxy->builder(
 					[
 						'width'  => ! isset( $size[0] ) ? 0 : $size[0],
 						'height' => ! isset( $size[1] ) ? 0 : $size[1],
 					],
-					$image[0]
+					$url
 				);
 			}
 
 		}
+
 		$image[0] = $image[0] . $s;
 
 		return $image;
