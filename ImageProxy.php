@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: ImageProxy plugin
-Plugin URI: http://alkoweb.ru
+Plugin URI: https://alkoweb.ru
 Author: Petrozavodsky
-Author URI: http://alkoweb.ru
+Author URI: https://alkoweb.ru
 Text Domain: ImageProxy
 Domain Path: /languages
 Requires PHP: 7.0
