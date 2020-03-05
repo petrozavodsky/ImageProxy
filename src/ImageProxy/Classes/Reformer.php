@@ -3,12 +3,17 @@
 namespace ImageProxy\Classes;
 
 
+use SplFileInfo;
+
 class Reformer {
 
 	private $proxy;
 	private $siteUrl = false;
 
 	public function __construct() {
+
+
+		$this->addStrSize( 'heroine.ru_5.08.2019_HOU2yf28OKgfL.jpg', '___ccleeennn___' );
 
 		if ( ! is_admin() || wp_doing_ajax() ) {
 
@@ -23,7 +28,6 @@ class Reformer {
 				add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
 
 				add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 2 );
-
 			}
 
 		}
@@ -72,58 +76,29 @@ class Reformer {
 		$baseName = basename( $data['file'] );
 
 		$virtualSizesGenerate = function ( $elem ) use ( $baseName, $id ) {
-			$c      = 50;
+			$c      = 100;
 			$width  = $elem['width'];
 			$height = $elem['height'];
 			$out    = [];
 
 			if ( $c <= $width && $c <= $height ) {
 
-				if ( $width > $height ) {
-					$p = $width / $height;
-					$i = $width;
+				$p = $width / $height;
+				$i = $width;
 
+				for ( ; $i > $c; $i = $i - $c ) {
 
-					for ( ; $i > $c; $i = $i - $c ) {
+					if ( $c < $i ) {
 
-						if ( $c < $i ) {
+						$w = $i;
+						$h = (int) round( $w / $p );
 
-							$w = $i;
-							$h = (int) round( $w / $p );
-
-							$out["image_{$w}x{$h}"] = [
-								'file'      => preg_replace(
-									'/(\..*$)/i',
-									"-{$w}x{$h}$1",
-									$baseName
-								),
-								'width'     => $w,
-								'height'    => $h,
-								'mime-type' => get_post_mime_type( $id )
-							];
-						}
-					}
-
-				} else {
-					$p = $height / $width;
-					$i = $height;
-
-					for ( ; $i > $c; $i = $i - $c ) {
-						if ( $c < $i ) {
-							$h = $i;
-							$w = (int) round( $h / $p );
-
-							$out["image_{$width}x{$height}"] = [
-								'file'      => preg_replace(
-									'/(\..*$)/i',
-									"-{$w}x{$h}$1",
-									$baseName
-								),
-								'width'     => $w,
-								'height'    => $h,
-								'mime-type' => get_post_mime_type( $id )
-							];
-						}
+						$out["image_{$w}x{$h}"] = [
+							'file'      => $this->addStrSize( $baseName, "-{$w}x{$h}" ),
+							'width'     => $w,
+							'height'    => $h,
+							'mime-type' => get_post_mime_type( $id )
+						];
 					}
 				}
 
@@ -136,6 +111,7 @@ class Reformer {
 		};
 
 		$newSizes = [];
+
 		foreach ( $sizes as $key => $val ) {
 			$p = $data['width'] / $data['height'];
 
@@ -154,10 +130,9 @@ class Reformer {
 				}
 			}
 
-			$newSizes[ $key ]['file'] = preg_replace(
-				'/(\..*$)/i',
-				"-{$newSizes[ $key ]['width']}x{$newSizes[ $key ]['height']}$1",
-				$baseName
+			$newSizes[ $key ]['file'] = $this->addStrSize(
+				$baseName,
+				"-{$newSizes[ $key ]['width']}x{$newSizes[ $key ]['height']}"
 			);
 
 		}
@@ -174,8 +149,11 @@ class Reformer {
 
 		}
 
-
 		$data['sizes'] = $adinational;
+
+		if ( 106013 == $id ) {
+			d( $data );
+		}
 
 		return $data;
 
@@ -340,7 +318,6 @@ class Reformer {
 
 		if ( isset( $image[0] ) ) {
 
-
 			if ( is_string( $size ) ) {
 				$sizeMeta = ( isset( $sizes[ $size ] ) ? $sizes[ $size ] : 0 );
 
@@ -430,6 +407,25 @@ class Reformer {
 		}
 
 		return '';
+	}
+
+	private function getFileExtension( $string ) {
+		$info = new SplFileInfo( $string );
+
+		return $info->getExtension();
+	}
+
+	private function addStrSize( $fileString, $fileSizeString ) {
+
+		$extension = $this->getFileExtension( $fileString );
+
+		$pattern = "(\.{$extension}$)";
+
+		return preg_replace(
+			"/$pattern/i",
+			"{$fileSizeString}$1",
+			$fileString
+		);
 	}
 
 }

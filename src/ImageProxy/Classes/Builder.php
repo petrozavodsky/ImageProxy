@@ -5,96 +5,91 @@ namespace ImageProxy\Classes;
 use ImageProxy\Admin\Page;
 use WP_Error;
 
-class Builder
-{
+class Builder {
 
-    private $options = [];
+	private $options = [];
 
-    private $key = '943b421c9eb07c830af81030552c86009268de4e532ba2ee2eab8247c6da0881';
+	private $key = '943b421c9eb07c830af81030552c86009268de4e532ba2ee2eab8247c6da0881';
 
-    private $salt = '520f986b998545b4785e0defbc4f3c1203f22de2374a3d53cb7a7fe9fea309c5';
+	private $salt = '520f986b998545b4785e0defbc4f3c1203f22de2374a3d53cb7a7fe9fea309c5';
 
-    private $host = 'https://cdn-0.royalcheese.ru';
+	private $host = 'https://cdn-0.royalcheese.ru';
 
-    public function __construct()
-    {
-        $this->options = Page::getOptions();
-    }
+	public function __construct() {
+		$this->options = Page::getOptions();
+	}
 
-    public function __get($prop)
-    {
-        if (in_array($prop, ['key', 'key'])) {
-            return $this->options[$prop];
-        } elseif ('host' == $prop) {
-            $hosts = $this->parseHostsOptions();
-            return $hosts[0];
-        }
-    }
+	public function __get( $prop ) {
+		if ( in_array( $prop, [ 'key', 'key' ] ) ) {
+			return $this->options[ $prop ];
+		} elseif ( 'host' == $prop ) {
+			$hosts = $this->parseHostsOptions();
 
-    private function getHostByImage($salt)
-    {
-        $object = new SelectCdnAddress($salt, $this->parseHostsOptions());
+			return $hosts[0];
+		}
+	}
 
-        return $object->getAddress();
-    }
+	private function getHostByImage( $salt ) {
+		$object = new SelectCdnAddress( $salt, $this->parseHostsOptions() );
 
-    /**
-     * Возвращает доступные домены CDN в виде массива
-     *
-     * @return array|string
-     */
-    private function parseHostsOptions()
-    {
-        $host = $this->options['host'];
+		return $object->getAddress();
+	}
 
-        if (false === strpos($host, ',')) {
-            return [trim($host)];
-        }
+	/**
+	 * Возвращает доступные домены CDN в виде массива
+	 *
+	 * @return array|string
+	 */
+	private function parseHostsOptions() {
+		$host = $this->options['host'];
 
-        $array = explode(',', $host);
+		if ( false === strpos( $host, ',' ) ) {
+			return [ trim( $host ) ];
+		}
 
-        return array_map('trim', $array);
-    }
+		$array = explode( ',', $host );
 
-    public function sign($path)
-    {
-        $keyBin = pack("H*", $this->key);
-        if (empty($keyBin)) {
+		return array_map( 'trim', $array );
+	}
 
-            return new WP_Error('error', 'Key expected to be hex-encoded string');
-        }
+	public function sign( $path ) {
+		$keyBin = pack( "H*", $this->key );
+		if ( empty( $keyBin ) ) {
 
-        $saltBin = pack("H*", $this->salt);
+			return new WP_Error( 'error', 'Key expected to be hex-encoded string' );
+		}
 
-        if (empty($saltBin)) {
+		$saltBin = pack( "H*", $this->salt );
 
-            return new WP_Error('error', 'Salt expected to be hex-encoded string');
-        }
+		if ( empty( $saltBin ) ) {
 
-        $signature = rtrim(strtr(base64_encode(hash_hmac('sha256', $saltBin . $path, $keyBin, true)), '+/', '-_'), '=');
-        return sprintf("/%s%s", $signature, $path);
-    }
+			return new WP_Error( 'error', 'Salt expected to be hex-encoded string' );
+		}
 
-    public function builder($data, $url)
-    {
-        $default = [
-            'resize' => 'fill',
-            'width' => 0,
-            'height' => 0,
-            'gravity' => 'no',
-            'enlarge' => 1,
-        ];
+		$signature = rtrim( strtr( base64_encode( hash_hmac( 'sha256', $saltBin . $path, $keyBin, true ) ), '+/', '-_' ), '=' );
 
-        $data = wp_parse_args($data, $default);
+		return sprintf( "/%s%s", $signature, $path );
+	}
 
-        array_unshift($data, '');
+	public function builder( $data, $url ) {
+		$default = [
+			'resize'  => 'fill',
+			'width'   => 0,
+			'height'  => 0,
+			'gravity' => 'no',
+			'enlarge' => 1,
+		];
 
-        array_push($data, rtrim(strtr(base64_encode($url), '+/', '-_'), '='));
+		$data = wp_parse_args( $data, $default );
 
-        $path = implode('/', $data);
+		array_unshift( $data, '' );
 
-        return  $this->getHostByImage($url) . $this->sign($path);
+		array_push( $data, rtrim( strtr( base64_encode( $url ), '+/', '-_' ), '=' ) );
 
-    }
+		$path = implode( '/', $data );
+
+		return $this->getHostByImage( $url ) . $this->sign( $path );
+
+	}
 
 }
