@@ -28,7 +28,7 @@ class Reformer {
 
 		}
 
-		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 10, 1 );
+		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 20, 1 );
 
 	}
 
@@ -48,7 +48,21 @@ class Reformer {
 	}
 
 	public function disableGenerateThumbnails( $sizes ) {
-		return $this->getDefaultImageSize(false);
+		$this->cliHelper();
+
+		$sizes = $this->getDefaultImageSize( false );
+
+		return $sizes;
+	}
+
+	/**
+	 * Remove intermediate image sizes inside WP CLI
+	 */
+	private function cliHelper() {
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			remove_image_size( '1536x1536' );
+			remove_image_size( '2048x2048' );
+		}
 	}
 
 	public function generateVirtualSizes( $data, $id ) {
