@@ -6,6 +6,7 @@ namespace ImageProxy\Classes;
 class Reformer {
 
 	private $proxy;
+	private $siteUrl = false;
 
 	public function __construct() {
 
@@ -31,8 +32,23 @@ class Reformer {
 
 	}
 
-	public function disableGenerateThumbnails( $new_sizes ) {
-		return $this->getDefaultImageSize();
+	private function replaceHost( $url ) {
+
+		if ( empty( $this->siteUrl ) ) {
+			return $url;
+		}
+
+		$host   = parse_url( $url, PHP_URL_HOST );
+		$scheme = parse_url( $url, PHP_URL_SCHEME );
+
+		$newHost   = parse_url( $this->siteUrl, PHP_URL_HOST );
+		$newScheme = parse_url( $this->siteUrl, PHP_URL_SCHEME );
+
+		return str_replace( "{$scheme}://{$host}", "{$newScheme}://{$newHost}", $url );
+	}
+
+	public function disableGenerateThumbnails( $sizes ) {
+		return $this->getDefaultImageSize(false);
 	}
 
 	public function generateVirtualSizes( $data, $id ) {
@@ -156,7 +172,7 @@ class Reformer {
 	 *
 	 * Получаем размеры стандарных миниатюр
 	 */
-	private function getDefaultImageSize() {
+	private function getDefaultImageSize( $touch = true ) {
 		$defaultSizes = [ 'thumbnail', 'medium', 'medium_large', 'large' ];
 
 		$out = [];
@@ -174,53 +190,55 @@ class Reformer {
 			}
 		}
 
-		$out["image_512x512"] = [
-			'width'  => 512,
-			'height' => 512,
-			'crop'   => true,
-		];
+		if ( $touch ) {
+			$out["image_512x512"] = [
+				'width'  => 512,
+				'height' => 512,
+				'crop'   => true,
+			];
 
-		$out["image_270x270"] = [
-			'width'  => 270,
-			'height' => 270,
-			'crop'   => true,
-		];
+			$out["image_270x270"] = [
+				'width'  => 270,
+				'height' => 270,
+				'crop'   => true,
+			];
 
-		$out["image_192x192"] = [
-			'width'  => 192,
-			'height' => 192,
-			'crop'   => true,
-		];
+			$out["image_192x192"] = [
+				'width'  => 192,
+				'height' => 192,
+				'crop'   => true,
+			];
 
-		$out["image_180x180"] = [
-			'width'  => 180,
-			'height' => 180,
-			'crop'   => true,
-		];
+			$out["image_180x180"] = [
+				'width'  => 180,
+				'height' => 180,
+				'crop'   => true,
+			];
 
-		$out["image_152x152"] = [
-			'width'  => 152,
-			'height' => 152,
-			'crop'   => true,
-		];
+			$out["image_152x152"] = [
+				'width'  => 152,
+				'height' => 152,
+				'crop'   => true,
+			];
 
-		$out["image_120x120"] = [
-			'width'  => 120,
-			'height' => 120,
-			'crop'   => true,
-		];
+			$out["image_120x120"] = [
+				'width'  => 120,
+				'height' => 120,
+				'crop'   => true,
+			];
 
-		$out["image_76x76"] = [
-			'width'  => 76,
-			'height' => 76,
-			'crop'   => true,
-		];
+			$out["image_76x76"] = [
+				'width'  => 76,
+				'height' => 76,
+				'crop'   => true,
+			];
 
-		$out["image_32x32"] = [
-			'width'  => 32,
-			'height' => 32,
-			'crop'   => true,
-		];
+			$out["image_32x32"] = [
+				'width'  => 32,
+				'height' => 32,
+				'crop'   => true,
+			];
+		}
 
 		return $out;
 	}
@@ -244,6 +262,8 @@ class Reformer {
 
 		$dirUpload  = wp_get_upload_dir();
 		$originFile = $dirUpload['baseurl'] . "/" . $imageMeta['file'];
+
+		$originFile = $this->replaceHost( $originFile );
 
 		$out = [];
 
@@ -278,9 +298,14 @@ class Reformer {
 
 		preg_match( $pattern, $url, $matches );
 
+		if ( ! empty( $this->siteUrl ) ) {
+			return true;
+		}
+
 		if ( empty( $matches ) ) {
 			return false;
 		}
+
 
 		return true;
 	}
@@ -295,7 +320,9 @@ class Reformer {
 		$sizes = wp_get_additional_image_sizes();
 		$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
 
-		$image[0] = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $image['0'] );
+		$s = "?origin=" . _wp_get_attachment_relative_path( $image[0] . "/" . basename( $image[0] ) );
+
+		$image[0] = $this->replaceHost( $image['0'] );
 
 		if ( isset( $image[0] ) ) {
 
@@ -312,6 +339,9 @@ class Reformer {
 				);
 			} elseif ( is_array( $size ) ) {
 				$url = wp_get_attachment_url( $id );
+
+
+				$url = $this->replaceHost( $url );
 
 				$image[0] = $this->proxy->builder(
 					[
@@ -347,6 +377,8 @@ class Reformer {
 					$width  = $this->getAttribute( 'width', $image );
 
 					$imageSrc = $src;
+
+					$imageSrc = $this->replaceHost( $imageSrc );
 
 					$array[ $src ] = $this->proxy->builder(
 						[
