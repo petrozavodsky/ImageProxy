@@ -15,11 +15,11 @@ class Reformer {
 
 				$this->proxy = new Builder();
 
-//				add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
+				add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
 
-//				add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 20, 5 );
+				add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 20, 5 );
 
-//				add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
+				add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
 
 				add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 2 );
 
@@ -244,8 +244,6 @@ class Reformer {
 
 		$dirUpload  = wp_get_upload_dir();
 		$originFile = $dirUpload['baseurl'] . "/" . $imageMeta['file'];
-		// TODO remove
-		$originFile = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $originFile );
 
 		$out = [];
 
@@ -280,13 +278,9 @@ class Reformer {
 
 		preg_match( $pattern, $url, $matches );
 
-		// TODO remove
-		return true;
-
 		if ( empty( $matches ) ) {
 			return false;
 		}
-
 
 		return true;
 	}
@@ -301,8 +295,6 @@ class Reformer {
 		$sizes = wp_get_additional_image_sizes();
 		$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
 
-		$s = "?origin=" . _wp_get_attachment_relative_path( $image[0] . "/" . basename( $image[0] ) );
-		// TODO remove
 		$image[0] = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $image['0'] );
 
 		if ( isset( $image[0] ) ) {
@@ -320,8 +312,6 @@ class Reformer {
 				);
 			} elseif ( is_array( $size ) ) {
 				$url = wp_get_attachment_url( $id );
-				// TODO remove
-				$url = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $url );
 
 				$image[0] = $this->proxy->builder(
 					[
@@ -357,9 +347,6 @@ class Reformer {
 					$width  = $this->getAttribute( 'width', $image );
 
 					$imageSrc = $src;
-
-					// TODO remove
-					$imageSrc = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $imageSrc );
 
 					$array[ $src ] = $this->proxy->builder(
 						[
