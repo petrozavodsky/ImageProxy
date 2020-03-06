@@ -33,6 +33,67 @@ class Reformer {
 
 	}
 
+	private function calculateSizesBySourceImageNew( $width, $height, $base, $id ) {
+		$c   = 100;
+		$out = [];
+		if ( $c <= $width && $c <= $height ) {
+			$p = $width / $height;
+			$i = $width;
+			for ( ; $i > $c; $i = $i - $c ) {
+				if ( $c < $i ) {
+					$w                      = $i;
+					$h                      = (int) round( $w / $p );
+					$out["image_{$w}x{$h}"] = [
+						'file'      => $this->addStrSize( $base, "-{$w}x{$h}" ),
+						'width'     => $w,
+						'height'    => $h,
+						'mime-type' => get_post_mime_type( $id )
+					];
+				}
+			}
+
+			return $out;
+		}
+
+		return false;
+	}
+
+	private function calculateSizesBySourceImage( $source, $base, $id ) {
+
+		$c      = 100;
+		$width  = $source['width'];
+		$height = $source['height'];
+		$out    = [];
+
+		if ( $c <= $width && $c <= $height ) {
+
+			$p = $width / $height;
+			$i = $width;
+
+			for ( ; $i > $c; $i = $i - $c ) {
+
+				if ( $c < $i ) {
+
+					$w = $i;
+					$h = (int) round( $w / $p );
+
+					$out["image_{$w}x{$h}"] = [
+						'file'      => $this->addStrSize( $base, "-{$w}x{$h}" ),
+						'width'     => $w,
+						'height'    => $h,
+						'mime-type' => get_post_mime_type( $id )
+					];
+				}
+			}
+
+			if ( ! empty( $out ) ) {
+				return $out;
+			}
+		}
+
+		return false;
+	}
+
 	private function replaceHost( $url ) {
 
 		if ( empty( $this->siteUrl ) ) {
@@ -72,41 +133,6 @@ class Reformer {
 		$sizes    = array_merge( $sizes, $this->getDefaultImageSize() );
 		$baseName = basename( $data['file'] );
 
-		$virtualSizesGenerate = function ( $elem ) use ( $baseName, $id ) {
-			$c      = 100;
-			$width  = $elem['width'];
-			$height = $elem['height'];
-			$out    = [];
-
-			if ( $c <= $width && $c <= $height ) {
-
-				$p = $width / $height;
-				$i = $width;
-
-				for ( ; $i > $c; $i = $i - $c ) {
-
-					if ( $c < $i ) {
-
-						$w = $i;
-						$h = (int) round( $w / $p );
-
-						$out["image_{$w}x{$h}"] = [
-							'file'      => $this->addStrSize( $baseName, "-{$w}x{$h}" ),
-							'width'     => $w,
-							'height'    => $h,
-							'mime-type' => get_post_mime_type( $id )
-						];
-					}
-				}
-
-				if ( ! empty( $out ) ) {
-					return $out;
-				}
-			}
-
-			return false;
-		};
-
 		$newSizes = [];
 
 		foreach ( $sizes as $key => $val ) {
@@ -134,11 +160,19 @@ class Reformer {
 
 		}
 
+		$newSizes["image_{$data['width']}x{$data['height']}"] = [
+			'file'      => $this->addStrSize( $baseName, "-{$data['width']}x{$data['height']}" ),
+			'width'     => $data['width'],
+			'height'    => $data['height'],
+			'mime-type' => get_post_mime_type( $id )
+		];
+
+
 		foreach ( $newSizes as $key => $val ) {
 
 			$adinational[ $key ] = $val;
 
-			$tmp = $virtualSizesGenerate( $val );
+			$tmp = $this->calculateSizesBySourceImage( $val, $baseName, $id );
 
 			if ( false !== $tmp ) {
 				$adinational = array_merge( $adinational, $tmp );
@@ -148,12 +182,7 @@ class Reformer {
 
 		$data['sizes'] = $adinational;
 
-		if ( 106013 == $id ) {
-			d( $data );
-		}
-
 		return $data;
-
 	}
 
 	/**
@@ -259,6 +288,7 @@ class Reformer {
 		foreach ( $sources as $source ) {
 			$findSize = $sizesByName( $source['url'] );
 
+
 			if ( empty( $findSize ) ) {
 				$source['url'] = $imageSrc;
 			} else {
@@ -274,6 +304,7 @@ class Reformer {
 
 			$out[] = $source;
 		}
+
 
 		return $out;
 	}

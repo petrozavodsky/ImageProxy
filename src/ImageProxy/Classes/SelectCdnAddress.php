@@ -1,8 +1,4 @@
 <?php
-/**
- * User: vladimir rambo petrozavodsky
- * Date: 2019-06-13
- */
 
 namespace ImageProxy\Classes;
 
