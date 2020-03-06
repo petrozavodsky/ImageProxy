@@ -12,9 +12,6 @@ class Reformer {
 
 	public function __construct() {
 
-
-		$this->addStrSize( 'heroine.ru_5.08.2019_HOU2yf28OKgfL.jpg', '___ccleeennn___' );
-
 		if ( ! is_admin() || wp_doing_ajax() ) {
 
 			if ( ! is_blog_admin() ) {
