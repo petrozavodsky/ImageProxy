@@ -92,4 +92,84 @@ class Builder {
 
 	}
 
+	public function builderAdvanced( $data, $url ) {
+		$default = [
+			'rs'    => [
+				'resizing_type' => 'fill',
+				'width'         => 0,
+				'height'        => 0,
+				'dpr'           => '',
+				'enlarge'       => 0,
+				'extend'        => '',
+				'g'             => '',
+				'c'             => '',
+				't'             => '',
+				'q'             => '',
+				'mb'            => '',
+				'bg'            => '',
+				'bl'            => '',
+			],
+			'wm'    => [
+				'opacity'  => '',
+				'position' => '',
+				'x_offset' => '',
+				'y_offset' => '',
+				'scale'    => '',
+			],
+			'pr'    => [],
+			'cb'    => '',
+			'fn'    => '',
+			'plain' => '',
+			'ext'   => '',
+		];
+
+		$data = wp_parse_args( $data, $default );
+
+		$extension = $data['ext'];
+		unset( $data['ext'] );
+
+		$array = [];
+		foreach ( $data as $k => $v ) {
+			if ( ! empty( $v ) ) {
+
+				if ( is_array( $v ) && ! empty( array_diff( $v, [ '' ] ) ) ) {
+					$array[] = "{$k}:" . implode( ':', array_diff( $v, [ '' ] ) );
+				}
+
+			}
+		}
+
+		if ( ! empty( $data['cb'] ) ) {
+			$array[] = $data['cb'];
+		}
+
+		if ( ! empty( $data['fn'] ) ) {
+			$array[] = $data['fn'];
+		}
+
+		if ( ! empty( $data['plain'] ) ) {
+
+			if ( ! empty( $extension ) ) {
+				$url .= "@{$extension}";
+			}
+
+			$array[] = "plain/{$url}";
+
+		} else {
+
+			$url = rtrim( strtr( base64_encode( $url ), '+/', '-_' ), '=' );
+
+			if ( ! empty( $extension ) ) {
+				$url .= ".{$extension}";
+			}
+
+			$array[] = $url;
+		}
+
+		$query = "/" . implode( '/', $array );
+
+		return $this->getHostByImage( $url ) . $this->sign( $query );
+
+	}
+
 }
