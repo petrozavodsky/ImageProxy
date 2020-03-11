@@ -133,14 +133,6 @@ class Builder {
 			'ext'   => '',
 		];
 
-		$data['wm'] = [
-			'opacity'  => 1,
-			'position' => 'soea',
-			'x_offset' => 15,
-			'y_offset' => 15,
-			'scale'    => 0.3,
-		];
-
 		$data = wp_parse_args( $data, $default );
 
 		if ( isset( $data['resize'] ) && ! empty( $data['resize'] ) ) {
