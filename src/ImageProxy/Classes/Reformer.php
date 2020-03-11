@@ -12,6 +12,7 @@ class Reformer {
 
 	public function __construct() {
 
+
 		if ( ! is_admin() || wp_doing_ajax() ) {
 
 			if ( ! is_blog_admin() ) {
@@ -31,31 +32,6 @@ class Reformer {
 
 		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 20, 1 );
 
-	}
-
-	private function calculateSizesBySourceImageNew( $width, $height, $base, $id ) {
-		$c   = 100;
-		$out = [];
-		if ( $c <= $width && $c <= $height ) {
-			$p = $width / $height;
-			$i = $width;
-			for ( ; $i > $c; $i = $i - $c ) {
-				if ( $c < $i ) {
-					$w                      = $i;
-					$h                      = (int) round( $w / $p );
-					$out["image_{$w}x{$h}"] = [
-						'file'      => $this->addStrSize( $base, "-{$w}x{$h}" ),
-						'width'     => $w,
-						'height'    => $h,
-						'mime-type' => get_post_mime_type( $id )
-					];
-				}
-			}
-
-			return $out;
-		}
-
-		return false;
 	}
 
 	private function calculateSizesBySourceImage( $source, $base, $id ) {
