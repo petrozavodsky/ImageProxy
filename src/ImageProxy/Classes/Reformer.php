@@ -284,27 +284,6 @@ class Reformer {
 		return $out;
 	}
 
-	private function checkDomainReplace( $url ) {
-		$pattern = "/^.*" . str_replace(
-				[ '/', 'http', 'https', 'www.' ],
-				[ '\\/', '', '', '' ],
-				site_url( '' )
-			) . '/iU';
-
-		preg_match( $pattern, $url, $matches );
-
-		if ( ! empty( $this->siteUrl ) ) {
-			return true;
-		}
-
-		if ( empty( $matches ) ) {
-			return false;
-		}
-
-
-		return true;
-	}
-
 	public function postHtml( $html ) {
 
 		return $this->regexSrc( $html );
@@ -316,6 +295,8 @@ class Reformer {
 		$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
 
 		$s = "?origin=" . _wp_get_attachment_relative_path( $image[0] . "/" . basename( $image[0] ) );
+
+		$image[0] = $this->replaceHost( $image['0'] );
 
 		$image[0] = $this->replaceHost( wp_get_attachment_url( $id ) );
 
@@ -353,6 +334,19 @@ class Reformer {
 		return $image;
 	}
 
+
+	private function checkComplete( $url ) {
+		$u       = wp_upload_dir();
+		$pattern = str_replace( site_url(), '', $u['baseurl'] );
+
+		if ( false === stristr( $url, $pattern ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+
 	public function regexSrc( $str ) {
 		preg_match_all( '~<img.*>~im', $str, $images );
 
@@ -364,8 +358,7 @@ class Reformer {
 
 				$src = $this->getAttribute( 'src', $image );
 
-
-				if ( $this->checkDomainReplace( $src ) ) {
+				if ( $this->checkComplete( $src ) ) {
 
 					$height = $this->getAttribute( 'height', $image );
 					$width  = $this->getAttribute( 'width', $image );
