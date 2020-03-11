@@ -5,6 +5,10 @@ namespace ImageProxy\Classes;
 
 use SplFileInfo;
 
+//ImageProxy__image-attachment-srcset
+//ImageProxy__image-attachment-src
+//ImageProxy__image-content-src
+
 class Reformer {
 
 	private $proxy;
@@ -269,10 +273,15 @@ class Reformer {
 			} else {
 
 				$source['url'] = $this->proxy->builder(
-					[
-						'width'  => empty( $findSize['width'] ) ? 0 : $findSize['width'],
-						'height' => empty( $findSize['height'] ) ? 0 : $findSize['height'],
-					],
+					apply_filters(
+						'ImageProxy__image-attachment-srcset',
+						[
+							'width'  => empty( $findSize['width'] ) ? 0 : $findSize['width'],
+							'height' => empty( $findSize['height'] ) ? 0 : $findSize['height'],
+						],
+						$originFile,
+						$id
+					),
 					$originFile
 				);
 			}
@@ -306,10 +315,15 @@ class Reformer {
 				$sizeMeta = ( isset( $sizes[ $size ] ) ? $sizes[ $size ] : 0 );
 
 				$image[0] = $this->proxy->builder(
-					[
-						'width'  => empty( $sizeMeta['width'] ) ? 0 : $sizeMeta['width'],
-						'height' => empty( $sizeMeta['height'] ) ? 0 : $sizeMeta['height'],
-					],
+					apply_filters(
+						'ImageProxy__image-attachment-src',
+						[
+							'width'  => empty( $sizeMeta['width'] ) ? 0 : $sizeMeta['width'],
+							'height' => empty( $sizeMeta['height'] ) ? 0 : $sizeMeta['height'],
+						],
+						$image[0],
+						$id
+					),
 					$image[0]
 				);
 			} elseif ( is_array( $size ) ) {
@@ -319,10 +333,15 @@ class Reformer {
 				$url = $this->replaceHost( $url );
 
 				$image[0] = $this->proxy->builder(
-					[
-						'width'  => ! isset( $size[0] ) ? 0 : $size[0],
-						'height' => ! isset( $size[1] ) ? 0 : $size[1],
-					],
+					apply_filters(
+						'ImageProxy__image-attachment-src',
+						[
+							'width'  => ! isset( $size[0] ) ? 0 : $size[0],
+							'height' => ! isset( $size[1] ) ? 0 : $size[1],
+						],
+						$url,
+						$id
+					),
 					$url
 				);
 			}
@@ -368,10 +387,15 @@ class Reformer {
 					$imageSrc = $this->replaceHost( $imageSrc );
 
 					$array[ $src ] = $this->proxy->builder(
-						[
-							'width'  => $width,
-							'height' => $height
-						],
+						apply_filters(
+							'ImageProxy__image-content-src',
+							[
+								'width'  => $width,
+								'height' => $height
+							],
+							$imageSrc
+						)
+						,
 						$imageSrc
 					);
 
