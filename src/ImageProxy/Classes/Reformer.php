@@ -370,6 +370,7 @@ class Reformer {
 
 
 	public function regexSrc( $str ) {
+
 		preg_match_all( '~<img.*>~im', $str, $images );
 
 		$array = [];
@@ -410,6 +411,7 @@ class Reformer {
 				return str_replace( array_keys( $array ), array_values( $array ), $str );
 			}
 		}
+
 
 		return $str;
 	}
