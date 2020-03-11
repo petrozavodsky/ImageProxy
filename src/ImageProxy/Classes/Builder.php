@@ -96,6 +96,13 @@ class Builder {
 	}
 
 	public function builder( $data, $url ) {
+
+		$basicType = apply_filters( 'ImageProxy__builder-type', false );
+
+		if ( $basicType ) {
+			return $this->builderBasic( $data, $url );
+		}
+
 		$default = [
 			'rs'    => [
 				'resizing_type' => 'fill',
