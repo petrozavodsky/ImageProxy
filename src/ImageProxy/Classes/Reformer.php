@@ -16,6 +16,8 @@ class Reformer {
 
 	public function __construct() {
 
+		$this->siteUrl = apply_filters( 'ImageProxy__site-host', false );
+
 		if ( ! is_admin() || wp_doing_ajax() ) {
 
 			if ( ! is_blog_admin() ) {
