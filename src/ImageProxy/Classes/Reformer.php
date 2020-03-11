@@ -5,6 +5,7 @@ namespace ImageProxy\Classes;
 
 use SplFileInfo;
 
+//ImageProxy__site-host
 //ImageProxy__image-attachment-srcset
 //ImageProxy__image-attachment-src
 //ImageProxy__image-content-src
