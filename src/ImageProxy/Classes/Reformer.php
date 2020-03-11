@@ -12,7 +12,6 @@ class Reformer {
 
 	public function __construct() {
 
-
 		if ( ! is_admin() || wp_doing_ajax() ) {
 
 			if ( ! is_blog_admin() ) {
@@ -318,7 +317,7 @@ class Reformer {
 
 		$s = "?origin=" . _wp_get_attachment_relative_path( $image[0] . "/" . basename( $image[0] ) );
 
-		$image[0] = $this->replaceHost( $image['0'] );
+		$image[0] = $this->replaceHost( wp_get_attachment_url( $id ) );
 
 		if ( isset( $image[0] ) ) {
 
