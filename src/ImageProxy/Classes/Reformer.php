@@ -5,6 +5,7 @@ namespace ImageProxy\Classes;
 
 use SplFileInfo;
 
+//ImageProxy__site-ajax-actions-exclude
 //ImageProxy__site-host
 //ImageProxy__image-attachment-srcset
 //ImageProxy__image-attachment-src
@@ -21,21 +22,49 @@ class Reformer {
 
 		$this->siteUrl = apply_filters( 'ImageProxy__site-host', false );
 
-		if ( ! is_admin() || ! is_blog_admin() || ! wp_doing_ajax() ) {
-
-			$this->proxy = new Builder();
-
-			add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
-
-			add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 20, 5 );
-
-			add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
-
-			add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 2 );
-		}
 
 		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 20, 1 );
 
+		if ( ! $this->excludeAdminAjaxActions() ) {
+			return false;
+		}
+
+		if ( is_admin() ) {
+			return false;
+		}
+
+		if ( is_blog_admin() ) {
+			return false;
+		}
+
+		$this->proxy = new Builder();
+
+		add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
+
+		add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 20, 5 );
+
+		add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
+
+		add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 2 );
+
+	}
+
+	private function excludeAdminAjaxActions() {
+		$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : false;
+
+		$exclude = [ 'query-attachments' ];
+
+		$exclude = apply_filters(
+			'ImageProxy__site-ajax-actions-exclude',
+			$exclude,
+			$action
+		);
+
+		if ( in_array( $action, $exclude ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	private function calculateSizesBySourceImage( $source, $base, $id ) {
