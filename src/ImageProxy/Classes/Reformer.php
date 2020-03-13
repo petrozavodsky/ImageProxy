@@ -12,6 +12,8 @@ use SplFileInfo;
 //ImageProxy__image-content-src
 //ImageProxy__image-id-skip
 //ImageProxy__image-src-skip
+//ImageProxy__image-avatar-src
+//ImageProxy__image-avatar-data-src
 
 class Reformer {
 
@@ -47,8 +49,9 @@ class Reformer {
 
 		add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 2 );
 
-		add_filter( 'get_avatar', [ $this, 'userAvatarHtml' ], 10, 3 );
+		add_filter( 'get_avatar', [ $this, 'userAvatarHtml' ], 20, 3 );
 
+		add_filter( 'get_avatar_data', [ $this, 'userAvatarDataFallback' ], 20, 2 );
 	}
 
 	private function isContainSizeStr( $str ) {
@@ -59,6 +62,26 @@ class Reformer {
 		}
 
 		return false;
+	}
+
+	public function userAvatarDataFallback( $args, $identificator ) {
+
+		if ( filter_var( $args['url'], FILTER_VALIDATE_URL ) ) {
+			$args['url'] = $this->proxy->builder(
+				apply_filters(
+					'ImageProxy__image-avatar-data-src',
+					[
+						'width'  => $args['width'],
+						'height' => $args['height'],
+					],
+					$args['url'],
+					$identificator
+				),
+				$args['url']
+			);
+		}
+
+		return $args;
 	}
 
 	public function userAvatarHtml( $avatar, $identificator, $size ) {
