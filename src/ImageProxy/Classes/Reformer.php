@@ -13,546 +13,529 @@ use SplFileInfo;
 //ImageProxy__image-id-skip
 //ImageProxy__image-src-skip
 
-class Reformer
-{
+class Reformer {
 
-    private $proxy;
-    private $siteUrl = false;
+	private $proxy;
+	private $siteUrl = false;
 
-    public function __construct()
-    {
+	public function __construct() {
 
-        $this->siteUrl = apply_filters('ImageProxy__site-host', false);
+		$this->siteUrl = apply_filters( 'ImageProxy__site-host', false );
 
 
-        add_filter('intermediate_image_sizes_advanced', [$this, 'disableGenerateThumbnails'], 20, 1);
+		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 20, 1 );
 
-        if (!$this->excludeAdminAjaxActions()) {
-            return false;
-        }
+		if ( ! $this->excludeAdminAjaxActions() ) {
+			return false;
+		}
 
-        if (is_admin()) {
-            return false;
-        }
+		if ( is_admin() ) {
+			return false;
+		}
 
-        if (is_blog_admin()) {
-            return false;
-        }
+		if ( is_blog_admin() ) {
+			return false;
+		}
 
-        $this->proxy = new Builder();
+		$this->proxy = new Builder();
 
-        add_filter('wp_get_attachment_image_src', [$this, 'src'], 20, 3);
+		add_filter( 'wp_get_attachment_image_src', [ $this, 'src' ], 20, 3 );
 
-        add_filter('wp_calculate_image_srcset', [$this, 'srcset'], 20, 5);
+		add_filter( 'wp_calculate_image_srcset', [ $this, 'srcset' ], 20, 5 );
 
-        add_filter('the_content', [$this, 'postHtml'], 20);
+		add_filter( 'the_content', [ $this, 'postHtml' ], 20 );
 
-        add_filter('wp_get_attachment_metadata', [$this, 'generateVirtualSizes'], 20, 2);
+		add_filter( 'wp_get_attachment_metadata', [ $this, 'generateVirtualSizes' ], 20, 2 );
 
-        add_filter('get_avatar', [$this, 'userAvatarHtml'], 10, 3);
+		add_filter( 'get_avatar', [ $this, 'userAvatarHtml' ], 10, 3 );
 
-    }
+	}
 
-    private function isContainSizeStr($str)
-    {
-        preg_match("~(-\d+?x\d+?)\.\D{3,4}$~iU", $str, $m);
+	private function isContainSizeStr( $str ) {
+		preg_match( "~(-\d+?x\d+?)\.\D{3,4}$~iU", $str, $m );
 
-        if (isset($m[1])) {
-            return $m[1];
-        }
+		if ( isset( $m[1] ) ) {
+			return $m[1];
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    public function userAvatarHtml($avatar, $identificator, $size)
-    {
+	public function userAvatarHtml( $avatar, $identificator, $size ) {
 
-        $src = $this->getAttribute('src', $avatar);
+		$src = $this->getAttribute( 'src', $avatar );
 
-        if ($this->checkComplete($src)) {
+		if ( $this->checkComplete( $src ) ) {
 
-            $subString = $this->isContainSizeStr($src);
+			$subString = $this->isContainSizeStr( $src );
 
-            $newSrc = $src;
+			$newSrc = $src;
 
-            if (!empty($subString)) {
-                $newSrc = str_replace($subString, '', $src);
-            }
+			if ( ! empty( $subString ) ) {
+				$newSrc = str_replace( $subString, '', $src );
+			}
 
-            $newSrc = $this->proxy->builder(
-                apply_filters(
-                    'ImageProxy__image-avatar-src',
-                    [
-                        'width' => $size,
-                        'height' => $size
-                    ],
-	                $this->replaceHost($src),
-                    $identificator,
-                    $size
-                ),
-                $newSrc
-            );
+			$newSrc = $this->replaceHost( $newSrc );
 
-            $avatar = str_replace($src, $newSrc, $avatar);
+			$newSrc = $this->proxy->builder(
+				apply_filters(
+					'ImageProxy__image-avatar-src',
+					[
+						'width'  => $size,
+						'height' => $size
+					],
+					$src,
+					$identificator,
+					$size
+				),
+				$newSrc
+			);
 
-        }
+			$avatar = str_replace( $src, $newSrc, $avatar );
 
-        return $avatar;
-    }
+		}
 
-    private function excludeAdminAjaxActions()
-    {
-        $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : false;
+		return $avatar;
+	}
 
-        $exclude = ['query-attachments'];
+	private function excludeAdminAjaxActions() {
+		$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : false;
 
-        $exclude = apply_filters(
-            'ImageProxy__site-ajax-actions-exclude',
-            $exclude,
-            $action
-        );
+		$exclude = [ 'query-attachments' ];
 
-        if (in_array($action, $exclude)) {
-            return false;
-        }
+		$exclude = apply_filters(
+			'ImageProxy__site-ajax-actions-exclude',
+			$exclude,
+			$action
+		);
 
-        return true;
-    }
+		if ( in_array( $action, $exclude ) ) {
+			return false;
+		}
 
-    private function calculateSizesBySourceImage($source, $base, $id)
-    {
+		return true;
+	}
 
-        $c = 100;
-        $width = $source['width'];
-        $height = $source['height'];
-        $out = [];
+	private function calculateSizesBySourceImage( $source, $base, $id ) {
 
-        if ($c <= $width && $c <= $height) {
+		$c      = 100;
+		$width  = $source['width'];
+		$height = $source['height'];
+		$out    = [];
 
-            $p = $width / $height;
-            $i = $width;
+		if ( $c <= $width && $c <= $height ) {
 
-            for (; $i > $c; $i = $i - $c) {
+			$p = $width / $height;
+			$i = $width;
 
-                if ($c < $i) {
+			for ( ; $i > $c; $i = $i - $c ) {
 
-                    $w = $i;
-                    $h = (int)round($w / $p);
+				if ( $c < $i ) {
 
-                    $out["image_{$w}x{$h}"] = [
-                        'file' => $this->addStrSize($base, "-{$w}x{$h}"),
-                        'width' => $w,
-                        'height' => $h,
-                        'mime-type' => get_post_mime_type($id)
-                    ];
-                }
-            }
+					$w = $i;
+					$h = (int) round( $w / $p );
 
-            if (!empty($out)) {
-                return $out;
-            }
-        }
+					$out["image_{$w}x{$h}"] = [
+						'file'      => $this->addStrSize( $base, "-{$w}x{$h}" ),
+						'width'     => $w,
+						'height'    => $h,
+						'mime-type' => get_post_mime_type( $id )
+					];
+				}
+			}
 
-        return false;
-    }
+			if ( ! empty( $out ) ) {
+				return $out;
+			}
+		}
 
-    private function replaceHost($url)
-    {
+		return false;
+	}
 
-        if (empty($this->siteUrl)) {
-            return $url;
-        }
+	private function replaceHost( $url ) {
 
-        $host = parse_url($url, PHP_URL_HOST);
-        $scheme = parse_url($url, PHP_URL_SCHEME);
+		if ( empty( $this->siteUrl ) ) {
+			return $url;
+		}
 
-        $newHost = parse_url($this->siteUrl, PHP_URL_HOST);
-        $newScheme = parse_url($this->siteUrl, PHP_URL_SCHEME);
+		$host   = parse_url( $url, PHP_URL_HOST );
+		$scheme = parse_url( $url, PHP_URL_SCHEME );
 
-        return str_replace("{$scheme}://{$host}", "{$newScheme}://{$newHost}", $url);
-    }
+		$newHost   = parse_url( $this->siteUrl, PHP_URL_HOST );
+		$newScheme = parse_url( $this->siteUrl, PHP_URL_SCHEME );
 
-    public function disableGenerateThumbnails($sizes)
-    {
-        $this->cliHelper();
+		return str_replace( "{$scheme}://{$host}", "{$newScheme}://{$newHost}", $url );
+	}
 
-        $sizes = $this->getDefaultImageSize(false);
+	public function disableGenerateThumbnails( $sizes ) {
+		$this->cliHelper();
 
-        return $sizes;
-    }
+		$sizes = $this->getDefaultImageSize( false );
 
-    /**
-     * Remove intermediate image sizes inside WP CLI
-     */
-    private function cliHelper()
-    {
-        if (defined('WP_CLI') && WP_CLI) {
-            remove_image_size('1536x1536');
-            remove_image_size('2048x2048');
-        }
-    }
+		return $sizes;
+	}
 
-    public function generateVirtualSizes($data, $id)
-    {
+	/**
+	 * Remove intermediate image sizes inside WP CLI
+	 */
+	private function cliHelper() {
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			remove_image_size( '1536x1536' );
+			remove_image_size( '2048x2048' );
+		}
+	}
 
-        $sizes = wp_get_additional_image_sizes();
-        $sizes = array_merge($sizes, $this->getDefaultImageSize());
-        $baseName = basename($data['file']);
+	public function generateVirtualSizes( $data, $id ) {
 
-        $newSizes = [];
+		$sizes    = wp_get_additional_image_sizes();
+		$sizes    = array_merge( $sizes, $this->getDefaultImageSize() );
+		$baseName = basename( $data['file'] );
 
-        foreach ($sizes as $key => $val) {
-            $p = $data['width'] / $data['height'];
+		$newSizes = [];
 
-            unset($val['crop']);
+		foreach ( $sizes as $key => $val ) {
+			$p = $data['width'] / $data['height'];
 
-            $newSizes[$key] = array_merge(
-                ['file' => $baseName],
-                $val,
-                ['mime-type' => get_post_mime_type($id)]
-            );
-
-            if (empty($val['height'])) {
+			unset( $val['crop'] );
 
-                if (!empty($newSizes[$key]['width'])) {
-                    $newSizes[$key]['height'] = (int)round($data['width'] / $p);
-                }
-            }
-
-            $newSizes[$key]['file'] = $this->addStrSize(
-                $baseName,
-                "-{$newSizes[ $key ]['width']}x{$newSizes[ $key ]['height']}"
-            );
-
-        }
-
-        $newSizes["image_{$data['width']}x{$data['height']}"] = [
-            'file' => $this->addStrSize($baseName, "-{$data['width']}x{$data['height']}"),
-            'width' => $data['width'],
-            'height' => $data['height'],
-            'mime-type' => get_post_mime_type($id)
-        ];
-
-
-        foreach ($newSizes as $key => $val) {
-
-            $adinational[$key] = $val;
+			$newSizes[ $key ] = array_merge(
+				[ 'file' => $baseName ],
+				$val,
+				[ 'mime-type' => get_post_mime_type( $id ) ]
+			);
 
-            $tmp = $this->calculateSizesBySourceImage($val, $baseName, $id);
-
-            if (false !== $tmp) {
-                $adinational = array_merge($adinational, $tmp);
-            }
+			if ( empty( $val['height'] ) ) {
 
-        }
+				if ( ! empty( $newSizes[ $key ]['width'] ) ) {
+					$newSizes[ $key ]['height'] = (int) round( $data['width'] / $p );
+				}
+			}
 
-        $data['sizes'] = $adinational;
+			$newSizes[ $key ]['file'] = $this->addStrSize(
+				$baseName,
+				"-{$newSizes[ $key ]['width']}x{$newSizes[ $key ]['height']}"
+			);
+
+		}
 
-        return $data;
-    }
+		$newSizes["image_{$data['width']}x{$data['height']}"] = [
+			'file'      => $this->addStrSize( $baseName, "-{$data['width']}x{$data['height']}" ),
+			'width'     => $data['width'],
+			'height'    => $data['height'],
+			'mime-type' => get_post_mime_type( $id )
+		];
 
-    /**
-     * @return array
-     *
-     * Получаем размеры стандарных миниатюр
-     */
-    private function getDefaultImageSize($touch = true)
-    {
-        $defaultSizes = ['thumbnail', 'medium', 'medium_large', 'large'];
 
-        $out = [];
-        foreach ($defaultSizes as $defaultSize) {
+		foreach ( $newSizes as $key => $val ) {
 
-            $width = (int)get_option("{$defaultSize}_size_w", 0);
-            $height = (int)get_option("{$defaultSize}_size_h", 0);
+			$adinational[ $key ] = $val;
 
-            if (!empty($width) && !empty($height)) {
-                $out[$defaultSize] = [
-                    'width' => $width,
-                    'height' => $height,
-                    'crop' => get_option("{$defaultSize}_crop", false),
-                ];
-            }
-        }
+			$tmp = $this->calculateSizesBySourceImage( $val, $baseName, $id );
 
-        if ($touch) {
-            $out["image_512x512"] = [
-                'width' => 512,
-                'height' => 512,
-                'crop' => true,
-            ];
+			if ( false !== $tmp ) {
+				$adinational = array_merge( $adinational, $tmp );
+			}
 
-            $out["image_270x270"] = [
-                'width' => 270,
-                'height' => 270,
-                'crop' => true,
-            ];
+		}
 
-            $out["image_192x192"] = [
-                'width' => 192,
-                'height' => 192,
-                'crop' => true,
-            ];
+		$data['sizes'] = $adinational;
 
-            $out["image_180x180"] = [
-                'width' => 180,
-                'height' => 180,
-                'crop' => true,
-            ];
+		return $data;
+	}
 
-            $out["image_152x152"] = [
-                'width' => 152,
-                'height' => 152,
-                'crop' => true,
-            ];
+	/**
+	 * @return array
+	 *
+	 * Получаем размеры стандарных миниатюр
+	 */
+	private function getDefaultImageSize( $touch = true ) {
+		$defaultSizes = [ 'thumbnail', 'medium', 'medium_large', 'large' ];
 
-            $out["image_120x120"] = [
-                'width' => 120,
-                'height' => 120,
-                'crop' => true,
-            ];
+		$out = [];
+		foreach ( $defaultSizes as $defaultSize ) {
 
-            $out["image_76x76"] = [
-                'width' => 76,
-                'height' => 76,
-                'crop' => true,
-            ];
+			$width  = (int) get_option( "{$defaultSize}_size_w", 0 );
+			$height = (int) get_option( "{$defaultSize}_size_h", 0 );
 
-            $out["image_32x32"] = [
-                'width' => 32,
-                'height' => 32,
-                'crop' => true,
-            ];
-        }
+			if ( ! empty( $width ) && ! empty( $height ) ) {
+				$out[ $defaultSize ] = [
+					'width'  => $width,
+					'height' => $height,
+					'crop'   => get_option( "{$defaultSize}_crop", false ),
+				];
+			}
+		}
 
-        return $out;
-    }
+		if ( $touch ) {
+			$out["image_512x512"] = [
+				'width'  => 512,
+				'height' => 512,
+				'crop'   => true,
+			];
 
-    public function srcset($sources, $sizeArray, $imageSrc, $imageMeta, $id)
-    {
+			$out["image_270x270"] = [
+				'width'  => 270,
+				'height' => 270,
+				'crop'   => true,
+			];
 
-        if (apply_filters('ImageProxy__image-id-skip', false, $id)) {
-            return $sources;
-        }
+			$out["image_192x192"] = [
+				'width'  => 192,
+				'height' => 192,
+				'crop'   => true,
+			];
 
-        $sizes = $imageMeta['sizes'];
+			$out["image_180x180"] = [
+				'width'  => 180,
+				'height' => 180,
+				'crop'   => true,
+			];
 
-        $sizesByName = function ($name) use ($sizes) {
-            $name = basename($name);
+			$out["image_152x152"] = [
+				'width'  => 152,
+				'height' => 152,
+				'crop'   => true,
+			];
 
-            foreach ($sizes as $size) {
+			$out["image_120x120"] = [
+				'width'  => 120,
+				'height' => 120,
+				'crop'   => true,
+			];
 
-                if ($name == $size['file']) {
-                    return $size;
-                }
-            }
+			$out["image_76x76"] = [
+				'width'  => 76,
+				'height' => 76,
+				'crop'   => true,
+			];
 
-            return false;
-        };
+			$out["image_32x32"] = [
+				'width'  => 32,
+				'height' => 32,
+				'crop'   => true,
+			];
+		}
 
-        $dirUpload = wp_get_upload_dir();
-        $originFile = $dirUpload['baseurl'] . "/" . $imageMeta['file'];
+		return $out;
+	}
 
-        $originFile = $this->replaceHost($originFile);
+	public function srcset( $sources, $sizeArray, $imageSrc, $imageMeta, $id ) {
 
-        $out = [];
+		if ( apply_filters( 'ImageProxy__image-id-skip', false, $id ) ) {
+			return $sources;
+		}
 
-        foreach ($sources as $source) {
-            $findSize = $sizesByName($source['url']);
+		$sizes = $imageMeta['sizes'];
 
+		$sizesByName = function ( $name ) use ( $sizes ) {
+			$name = basename( $name );
 
-            if (empty($findSize)) {
-                $source['url'] = $imageSrc;
-            } else {
+			foreach ( $sizes as $size ) {
 
-                $source['url'] = $this->proxy->builder(
-                    apply_filters(
-                        'ImageProxy__image-attachment-srcset',
-                        [
-                            'width' => empty($findSize['width']) ? 0 : $findSize['width'],
-                            'height' => empty($findSize['height']) ? 0 : $findSize['height'],
-                        ],
-                        $originFile,
-                        $id
-                    ),
-                    $originFile
-                );
-            }
+				if ( $name == $size['file'] ) {
+					return $size;
+				}
+			}
 
-            $out[] = $source;
-        }
+			return false;
+		};
 
+		$dirUpload  = wp_get_upload_dir();
+		$originFile = $dirUpload['baseurl'] . "/" . $imageMeta['file'];
 
-        return $out;
-    }
+		$originFile = $this->replaceHost( $originFile );
 
-    public function postHtml($html)
-    {
+		$out = [];
 
-        return $this->regexSrc($html);
-    }
+		foreach ( $sources as $source ) {
+			$findSize = $sizesByName( $source['url'] );
 
-    public function src($image, $id, $size)
-    {
 
-        if (apply_filters('ImageProxy__image-id-skip', false, $id)) {
-            return $image;
-        }
+			if ( empty( $findSize ) ) {
+				$source['url'] = $imageSrc;
+			} else {
 
-        $sizes = wp_get_additional_image_sizes();
-        $sizes = array_merge($sizes, $this->getDefaultImageSize());
+				$source['url'] = $this->proxy->builder(
+					apply_filters(
+						'ImageProxy__image-attachment-srcset',
+						[
+							'width'  => empty( $findSize['width'] ) ? 0 : $findSize['width'],
+							'height' => empty( $findSize['height'] ) ? 0 : $findSize['height'],
+						],
+						$originFile,
+						$id
+					),
+					$originFile
+				);
+			}
 
-        $s = "?origin=" . _wp_get_attachment_relative_path($image[0] . "/" . basename($image[0]));
+			$out[] = $source;
+		}
 
-        $image[0] = $this->replaceHost($image['0']);
 
-        $image[0] = $this->replaceHost(wp_get_attachment_url($id));
+		return $out;
+	}
 
-        if (isset($image[0])) {
+	public function postHtml( $html ) {
 
-            if (is_string($size)) {
-                $sizeMeta = (isset($sizes[$size]) ? $sizes[$size] : 0);
+		return $this->regexSrc( $html );
+	}
 
-                $image[0] = $this->proxy->builder(
-                    apply_filters(
-                        'ImageProxy__image-attachment-src',
-                        [
-                            'width' => empty($sizeMeta['width']) ? 0 : $sizeMeta['width'],
-                            'height' => empty($sizeMeta['height']) ? 0 : $sizeMeta['height'],
-                        ],
-                        $image[0],
-                        $id
-                    ),
-                    $image[0]
-                );
-            } elseif (is_array($size)) {
-                $url = wp_get_attachment_url($id);
+	public function src( $image, $id, $size ) {
 
+		if ( apply_filters( 'ImageProxy__image-id-skip', false, $id ) ) {
+			return $image;
+		}
 
-                $url = $this->replaceHost($url);
+		$sizes = wp_get_additional_image_sizes();
+		$sizes = array_merge( $sizes, $this->getDefaultImageSize() );
 
-                $image[0] = $this->proxy->builder(
-                    apply_filters(
-                        'ImageProxy__image-attachment-src',
-                        [
-                            'width' => !isset($size[0]) ? 0 : $size[0],
-                            'height' => !isset($size[1]) ? 0 : $size[1],
-                        ],
-                        $url,
-                        $id
-                    ),
-                    $url
-                );
-            }
+		$s = "?origin=" . _wp_get_attachment_relative_path( $image[0] . "/" . basename( $image[0] ) );
 
-        }
+		$image[0] = $this->replaceHost( $image['0'] );
 
-        $image[0] = $image[0] . $s;
+		$image[0] = $this->replaceHost( wp_get_attachment_url( $id ) );
 
-        return $image;
-    }
+		if ( isset( $image[0] ) ) {
 
+			if ( is_string( $size ) ) {
+				$sizeMeta = ( isset( $sizes[ $size ] ) ? $sizes[ $size ] : 0 );
 
-    private function checkComplete($url)
-    {
-        $u = wp_upload_dir();
-        $pattern = $u['baseurl'];
+				$image[0] = $this->proxy->builder(
+					apply_filters(
+						'ImageProxy__image-attachment-src',
+						[
+							'width'  => empty( $sizeMeta['width'] ) ? 0 : $sizeMeta['width'],
+							'height' => empty( $sizeMeta['height'] ) ? 0 : $sizeMeta['height'],
+						],
+						$image[0],
+						$id
+					),
+					$image[0]
+				);
+			} elseif ( is_array( $size ) ) {
+				$url = wp_get_attachment_url( $id );
 
-        if (false === stristr($url, $pattern)) {
-            return false;
-        }
 
-        return true;
-    }
+				$url = $this->replaceHost( $url );
 
+				$image[0] = $this->proxy->builder(
+					apply_filters(
+						'ImageProxy__image-attachment-src',
+						[
+							'width'  => ! isset( $size[0] ) ? 0 : $size[0],
+							'height' => ! isset( $size[1] ) ? 0 : $size[1],
+						],
+						$url,
+						$id
+					),
+					$url
+				);
+			}
 
-    public function regexSrc($str)
-    {
+		}
 
-        preg_match_all('~<img.*>~im', $str, $images);
+		$image[0] = $image[0] . $s;
 
-        $array = [];
+		return $image;
+	}
 
-        if (isset($images[0]) && !empty($images[0])) {
 
-            foreach ($images[0] as $image) {
+	private function checkComplete( $url ) {
+		$u       = wp_upload_dir();
+		$pattern = $u['baseurl'];
 
-                $src = $this->getAttribute('src', $image);
-                if (!apply_filters('ImageProxy__image-src-skip', false, $src)) {
-                    if ($this->checkComplete($src)) {
+		if ( false === stristr( $url, $pattern ) ) {
+			return false;
+		}
 
-                        $height = $this->getAttribute('height', $image);
-                        $width = $this->getAttribute('width', $image);
+		return true;
+	}
 
-                        $imageSrc = $src;
 
-                        $imageSrc = $this->replaceHost($imageSrc);
+	public function regexSrc( $str ) {
 
-                        $array[$src] = $this->proxy->builder(
-                            apply_filters(
-                                'ImageProxy__image-content-src',
-                                [
-                                    'width' => $width,
-                                    'height' => $height
-                                ],
-                                $imageSrc
-                            )
-                            ,
-                            $imageSrc
-                        );
+		preg_match_all( '~<img.*>~im', $str, $images );
 
-                    }
-                }
+		$array = [];
 
-            }
+		if ( isset( $images[0] ) && ! empty( $images[0] ) ) {
 
-            if (!empty($array)) {
-                return str_replace(array_keys($array), array_values($array), $str);
-            }
-        }
+			foreach ( $images[0] as $image ) {
 
+				$src = $this->getAttribute( 'src', $image );
+				if ( ! apply_filters( 'ImageProxy__image-src-skip', false, $src ) ) {
+					if ( $this->checkComplete( $src ) ) {
 
-        return $str;
-    }
+						$height = $this->getAttribute( 'height', $image );
+						$width  = $this->getAttribute( 'width', $image );
 
-    /**
-     * Get html attribute by name
-     *
-     * @param $str
-     * @param $atr
-     *
-     * @return mixed
-     */
-    public function getAttribute($atr, $str)
-    {
-        preg_match("~{$atr}=[\"|'](.*)[\"|']\s~imU", $str, $m);
+						$imageSrc = $src;
 
-        if (isset($m[1])) {
-            return $m[1];
-        }
+						$imageSrc = $this->replaceHost( $imageSrc );
 
-        return '';
-    }
+						$array[ $src ] = $this->proxy->builder(
+							apply_filters(
+								'ImageProxy__image-content-src',
+								[
+									'width'  => $width,
+									'height' => $height
+								],
+								$imageSrc
+							)
+							,
+							$imageSrc
+						);
 
-    private function getFileExtension($string)
-    {
-        $info = new SplFileInfo($string);
+					}
+				}
 
-        return $info->getExtension();
-    }
+			}
 
-    private function addStrSize($fileString, $fileSizeString)
-    {
+			if ( ! empty( $array ) ) {
+				return str_replace( array_keys( $array ), array_values( $array ), $str );
+			}
+		}
 
-        $extension = $this->getFileExtension($fileString);
 
-        $pattern = "(\.{$extension}$)";
+		return $str;
+	}
 
-        return preg_replace(
-            "/$pattern/i",
-            "{$fileSizeString}$1",
-            $fileString
-        );
-    }
+	/**
+	 * Get html attribute by name
+	 *
+	 * @param $str
+	 * @param $atr
+	 *
+	 * @return mixed
+	 */
+	public function getAttribute( $atr, $str ) {
+		preg_match( "~{$atr}=[\"|'](.*)[\"|']\s~imU", $str, $m );
+
+		if ( isset( $m[1] ) ) {
+			return $m[1];
+		}
+
+		return '';
+	}
+
+	private function getFileExtension( $string ) {
+		$info = new SplFileInfo( $string );
+
+		return $info->getExtension();
+	}
+
+	private function addStrSize( $fileString, $fileSizeString ) {
+
+		$extension = $this->getFileExtension( $fileString );
+
+		$pattern = "(\.{$extension}$)";
+
+		return preg_replace(
+			"/$pattern/i",
+			"{$fileSizeString}$1",
+			$fileString
+		);
+	}
 
 }
