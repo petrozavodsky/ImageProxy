@@ -14,6 +14,7 @@ use SplFileInfo;
 //ImageProxy__image-src-skip
 //ImageProxy__image-avatar-src
 //ImageProxy__image-avatar-data-src
+//ImageProxy__image-convert-disable
 
 class Reformer {
 
@@ -28,6 +29,10 @@ class Reformer {
 		add_filter( 'intermediate_image_sizes_advanced', [ $this, 'disableGenerateThumbnails' ], 20, 1 );
 
 		if ( ! $this->excludeAdminAjaxActions() ) {
+			return false;
+		}
+		
+		if ( apply_filters('ImageProxy__image-convert-disable', false) ) {
 			return false;
 		}
 
