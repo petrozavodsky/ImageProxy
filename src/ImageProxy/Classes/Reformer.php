@@ -86,7 +86,7 @@ class Reformer
                         'width' => $size,
                         'height' => $size
                     ],
-                    $src,
+	                $this->replaceHost($src),
                     $identificator,
                     $size
                 ),
