@@ -28,6 +28,7 @@ new Autoloader( __FILE__, 'ImageProxy' );
 
 use ImageProxy\Base\Wrap;
 use ImageProxy\Classes\Reformer;
+use ImageProxy\Compatibility\YoastSeo;
 
 class ImageProxy extends Wrap {
 	public $version = '1.0.3';
@@ -38,6 +39,8 @@ class ImageProxy extends Wrap {
 
 		new Reformer();
 		new Page();
+
+		new YoastSeo();
 	}
 
 }
