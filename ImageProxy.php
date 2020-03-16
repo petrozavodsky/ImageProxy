@@ -39,10 +39,12 @@ class ImageProxy extends Wrap {
 
 		new Reformer();
 		new Page();
-
-		new YoastSeo();
+//		$this->pluginsCompat();
 	}
 
+	private function pluginsCompat() {
+		new YoastSeo();
+	}
 }
 
 function ImageProxy__init() {

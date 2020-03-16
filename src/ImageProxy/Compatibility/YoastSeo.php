@@ -2,6 +2,8 @@
 
 namespace ImageProxy\Compatibility;
 
+use ImageProxy\Classes\SelectCdnAddress;
+
 class YoastSeo {
 
 	public function __construct() {
@@ -10,10 +12,19 @@ class YoastSeo {
 
 	public function validImageUrl( $valid, $url ) {
 
-		if ( $url ) {
-			return true;
+		$hosts = SelectCdnAddress::getOptions();
+
+		if ( empty( $hosts ) ) {
+			return false;
+		}
+
+		foreach ( $hosts as $host ) {
+			if ( false !== stristr( $url, $host ) ) {
+				return true;
+			}
 		}
 
 		return $valid;
 	}
+
 }

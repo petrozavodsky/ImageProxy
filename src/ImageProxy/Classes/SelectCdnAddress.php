@@ -3,62 +3,81 @@
 namespace ImageProxy\Classes;
 
 
+use ImageProxy\Admin\Page;
 use WP_Error;
 
-class SelectCdnAddress
-{
-    private $salt;
+class SelectCdnAddress {
+	private $salt;
 
-    private $addressList = [];
+	private $addressList = [];
 
-    public function __construct($salt, $addressList)
-    {
-        $this->salt = $salt;
-        $this->addressList = $addressList;
+	public function __construct( $salt, $addressList ) {
+		$this->salt        = $salt;
+		$this->addressList = $addressList;
 
-        if (empty($salt)) {
-            new WP_Error('empty_salt', 'pls add salt');
-        }
+		if ( empty( $salt ) ) {
+			new WP_Error( 'empty_salt', 'pls add salt' );
+		}
 
-        if (empty($this->addressList)) {
-            new WP_Error('empty_address', 'pls set addresses array');
+		if ( empty( $this->addressList ) ) {
+			new WP_Error( 'empty_address', 'pls set addresses array' );
 
-        }
-    }
+		}
+	}
 
-    /**
-     * Получение адреса из списка
-     *
-     * @return mixed
-     */
-    public function getAddress()
-    {
+	/**
+	 * Получаем хосты из базы
+	 * @return array
+	 */
+	public static function getOptions() {
+		$options = get_option( Page::$slug, [
+			'key'  => '',
+			'salt' => '',
+			'host' => '',
+		] );
 
-        $number = (int)substr(hexdec($this->salt), 0, 1);
+		if ( isset( $options['host'] ) && ! empty( $options['host'] ) ) {
+			$hosts = explode( ',', $options['host'] );
+			$hosts = array_map( 'trim', $hosts );
 
-        $count = count($this->addressList);
+			return $hosts;
+		}
 
-        $index = $this->residue($number, $count);
+		return [];
+	}
 
-        $index = $index - 1;
+	/**
+	 * Получение адреса из списка
+	 *
+	 * @return mixed
+	 */
+	public function getAddress() {
 
-        return (isset($this->addressList[$index]) ? $this->addressList[$index] : $this->addressList[0]);
-    }
+		$number = (int) substr( hexdec( $this->salt ), 0, 1 );
 
-    /**
-     * Определение офсета учитывая рамки допустимо мозмодных вариантов
-     *
-     * @param $number
-     * @param $limit
-     * @return mixed
-     */
-    private function residue($number, $limit)
-    {
-        if ($number > $limit) {
-            return $this->residue($number - $limit, $limit);
-        }
+		$count = count( $this->addressList );
 
-        return $number;
-    }
+		$index = $this->residue( $number, $count );
+
+		$index = $index - 1;
+
+		return ( isset( $this->addressList[ $index ] ) ? $this->addressList[ $index ] : $this->addressList[0] );
+	}
+
+	/**
+	 * Определение офсета учитывая рамки допустимо мозмодных вариантов
+	 *
+	 * @param $number
+	 * @param $limit
+	 *
+	 * @return mixed
+	 */
+	private function residue( $number, $limit ) {
+		if ( $number > $limit ) {
+			return $this->residue( $number - $limit, $limit );
+		}
+
+		return $number;
+	}
 }
 
