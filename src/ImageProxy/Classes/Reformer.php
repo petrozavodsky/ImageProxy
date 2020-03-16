@@ -31,8 +31,8 @@ class Reformer {
 		if ( ! $this->excludeAdminAjaxActions() ) {
 			return false;
 		}
-		
-		if ( apply_filters('ImageProxy__image-convert-disable', false) ) {
+
+		if ( apply_filters( 'ImageProxy__image-convert-disable', false ) ) {
 			return false;
 		}
 
@@ -199,6 +199,8 @@ class Reformer {
 		$this->cliHelper();
 
 		$sizes = $this->getDefaultImageSize( false );
+
+		$sizes = apply_filters( 'ImageProxy__image-disable-sizes', $sizes );
 
 		return $sizes;
 	}
