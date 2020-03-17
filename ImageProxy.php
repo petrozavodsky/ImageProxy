@@ -39,7 +39,7 @@ class ImageProxy extends Wrap {
 
 		new Reformer();
 		new Page();
-//		$this->pluginsCompat();
+		$this->pluginsCompat();
 	}
 
 	private function pluginsCompat() {
