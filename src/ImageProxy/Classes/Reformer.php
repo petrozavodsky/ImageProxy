@@ -275,11 +275,11 @@ class Reformer {
 	public function disableGenerateThumbnails( $sizes ) {
 		$this->cliHelper();
 
-		$sizes = $this->getDefaultImageSize( false );
+		$newSizes = $this->getDefaultImageSize( false );
 
-		$sizes = apply_filters( 'ImageProxy__image-disable-sizes', $sizes );
+		$newSizes = apply_filters( 'ImageProxy__image-disable-sizes', $newSizes, $sizes );
 
-		return $sizes;
+		return $newSizes;
 	}
 
 	/**
