@@ -15,6 +15,7 @@ use SplFileInfo;
 //ImageProxy__image-avatar-src
 //ImageProxy__image-avatar-data-src
 //ImageProxy__image-convert-disable
+//ImageProxy__image-disable-sizes
 
 class Reformer {
 
@@ -195,6 +196,82 @@ class Reformer {
 		return str_replace( "{$scheme}://{$host}", "{$newScheme}://{$newHost}", $url );
 	}
 
+	/**
+	 * @return array
+	 *
+	 * Получаем размеры стандарных миниатюр
+	 */
+	private function getDefaultImageSize( $touch = true ) {
+		$defaultSizes = [ 'thumbnail', 'medium', 'medium_large', 'large' ];
+
+		$out = [];
+		foreach ( $defaultSizes as $defaultSize ) {
+
+			$width  = (int) get_option( "{$defaultSize}_size_w", 0 );
+			$height = (int) get_option( "{$defaultSize}_size_h", 0 );
+
+			if ( ! empty( $width ) && ! empty( $height ) ) {
+				$out[ $defaultSize ] = [
+					'width'  => $width,
+					'height' => $height,
+					'crop'   => get_option( "{$defaultSize}_crop", false ),
+				];
+			}
+		}
+
+		if ( $touch ) {
+			$out["image_512x512"] = [
+				'width'  => 512,
+				'height' => 512,
+				'crop'   => true,
+			];
+
+			$out["image_270x270"] = [
+				'width'  => 270,
+				'height' => 270,
+				'crop'   => true,
+			];
+
+			$out["image_192x192"] = [
+				'width'  => 192,
+				'height' => 192,
+				'crop'   => true,
+			];
+
+			$out["image_180x180"] = [
+				'width'  => 180,
+				'height' => 180,
+				'crop'   => true,
+			];
+
+			$out["image_152x152"] = [
+				'width'  => 152,
+				'height' => 152,
+				'crop'   => true,
+			];
+
+			$out["image_120x120"] = [
+				'width'  => 120,
+				'height' => 120,
+				'crop'   => true,
+			];
+
+			$out["image_76x76"] = [
+				'width'  => 76,
+				'height' => 76,
+				'crop'   => true,
+			];
+
+			$out["image_32x32"] = [
+				'width'  => 32,
+				'height' => 32,
+				'crop'   => true,
+			];
+		}
+
+		return $out;
+	}
+
 	public function disableGenerateThumbnails( $sizes ) {
 		$this->cliHelper();
 
@@ -271,82 +348,6 @@ class Reformer {
 		$data['sizes'] = $adinational;
 
 		return $data;
-	}
-
-	/**
-	 * @return array
-	 *
-	 * Получаем размеры стандарных миниатюр
-	 */
-	private function getDefaultImageSize( $touch = true ) {
-		$defaultSizes = [ 'thumbnail', 'medium', 'medium_large', 'large' ];
-
-		$out = [];
-		foreach ( $defaultSizes as $defaultSize ) {
-
-			$width  = (int) get_option( "{$defaultSize}_size_w", 0 );
-			$height = (int) get_option( "{$defaultSize}_size_h", 0 );
-
-			if ( ! empty( $width ) && ! empty( $height ) ) {
-				$out[ $defaultSize ] = [
-					'width'  => $width,
-					'height' => $height,
-					'crop'   => get_option( "{$defaultSize}_crop", false ),
-				];
-			}
-		}
-
-		if ( $touch ) {
-			$out["image_512x512"] = [
-				'width'  => 512,
-				'height' => 512,
-				'crop'   => true,
-			];
-
-			$out["image_270x270"] = [
-				'width'  => 270,
-				'height' => 270,
-				'crop'   => true,
-			];
-
-			$out["image_192x192"] = [
-				'width'  => 192,
-				'height' => 192,
-				'crop'   => true,
-			];
-
-			$out["image_180x180"] = [
-				'width'  => 180,
-				'height' => 180,
-				'crop'   => true,
-			];
-
-			$out["image_152x152"] = [
-				'width'  => 152,
-				'height' => 152,
-				'crop'   => true,
-			];
-
-			$out["image_120x120"] = [
-				'width'  => 120,
-				'height' => 120,
-				'crop'   => true,
-			];
-
-			$out["image_76x76"] = [
-				'width'  => 76,
-				'height' => 76,
-				'crop'   => true,
-			];
-
-			$out["image_32x32"] = [
-				'width'  => 32,
-				'height' => 32,
-				'crop'   => true,
-			];
-		}
-
-		return $out;
 	}
 
 	public function srcset( $sources, $sizeArray, $imageSrc, $imageMeta, $id ) {
@@ -470,7 +471,6 @@ class Reformer {
 		return $image;
 	}
 
-
 	private function checkComplete( $url ) {
 		$u       = wp_upload_dir();
 		$pattern = $u['baseurl'];
@@ -481,7 +481,6 @@ class Reformer {
 
 		return true;
 	}
-
 
 	public function regexSrc( $str ) {
 
