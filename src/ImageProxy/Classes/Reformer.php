@@ -436,7 +436,7 @@ class Reformer
 
         if (is_array($crop)) {
 
-            if(empty($crop) || 2 > count($crop)  ){
+            if (empty($crop) || 2 > count($crop)) {
                 return [
                     'g' => [
                         'gravity_type' => 'ce',
@@ -444,7 +444,7 @@ class Reformer
                 ];
             }
 
-            if(!in_array($crop[0],['left' ,'right','center'])){
+            if (!in_array($crop[0], ['left', 'right', 'center'])) {
                 return [
                     'g' => [
                         'gravity_type' => 'ce',
@@ -452,7 +452,7 @@ class Reformer
                 ];
             }
 
-            if(!in_array($crop[1],['top' ,'bottom','center'])){
+            if (!in_array($crop[1], ['top', 'bottom', 'center'])) {
                 return [
                     'g' => [
                         'gravity_type' => 'ce',
@@ -485,10 +485,10 @@ class Reformer
 
                 // по стороне
                 return [
-                    'g'     => [
+                    'g' => [
                         'gravity_type' => 'ce',
-                        'x_offset'     => 0,
-                        'y_offset'     => 0,
+                        'x_offset' => 0,
+                        'y_offset' => 0,
                     ],
                 ];
             }
@@ -669,4 +669,45 @@ class Reformer
         );
     }
 
+    private function cropHelper( $orig_w, $orig_h, $dest_w, $dest_h, $crop = false ) {
+
+
+
+        // Stop if the destination size is larger than the original image dimensions.
+        if ( empty( $dest_h ) ) {
+            if ( $orig_w < $dest_w ) {
+                return false;
+            }
+        } elseif ( empty( $dest_w ) ) {
+            if ( $orig_h < $dest_h ) {
+                return false;
+            }
+        } else {
+            if ( $orig_w < $dest_w && $orig_h < $dest_h ) {
+                return false;
+            }
+        }
+
+        if ( $crop ) {
+            $aspect_ratio = $orig_w / $orig_h;
+            $new_w        = min( $dest_w, $orig_w );
+            $new_h        = min( $dest_h, $orig_h );
+
+            if ( ! $new_w ) {
+                $new_w = (int) round( $new_h * $aspect_ratio );
+            }
+
+            if ( ! $new_h ) {
+                $new_h = (int) round( $new_w / $aspect_ratio );
+            }
+
+
+        } else {
+
+            list( $new_w, $new_h ) = wp_constrain_dimensions( $orig_w, $orig_h, $dest_w, $dest_h );
+        }
+
+
+       return array(  (int) $new_w, (int) $new_h );
+    }
 }
