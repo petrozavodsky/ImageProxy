@@ -669,45 +669,43 @@ class Reformer
         );
     }
 
-    private function cropHelper( $orig_w, $orig_h, $dest_w, $dest_h, $crop = false ) {
-
-
+    private function cropHelper($origWidth, $origHeight, $destWidth, $destHeight, $crop = false)
+    {
 
         // Stop if the destination size is larger than the original image dimensions.
-        if ( empty( $dest_h ) ) {
-            if ( $orig_w < $dest_w ) {
+        if (empty($destHeight)) {
+            if ($origWidth < $destWidth) {
                 return false;
             }
-        } elseif ( empty( $dest_w ) ) {
-            if ( $orig_h < $dest_h ) {
+        } elseif (empty($destWidth)) {
+            if ($origHeight < $destHeight) {
                 return false;
             }
         } else {
-            if ( $orig_w < $dest_w && $orig_h < $dest_h ) {
+            if ($origWidth < $destWidth && $origHeight < $destHeight) {
                 return false;
             }
         }
 
-        if ( $crop ) {
-            $aspect_ratio = $orig_w / $orig_h;
-            $new_w        = min( $dest_w, $orig_w );
-            $new_h        = min( $dest_h, $orig_h );
+        if ($crop) {
+            $aspectRatio = $origWidth / $origHeight;
+            $widthNew = min($destWidth, $origWidth);
+            $heightNew = min($destHeight, $origHeight);
 
-            if ( ! $new_w ) {
-                $new_w = (int) round( $new_h * $aspect_ratio );
+            if (!$widthNew) {
+                $widthNew = (int)round($heightNew * $aspectRatio);
             }
 
-            if ( ! $new_h ) {
-                $new_h = (int) round( $new_w / $aspect_ratio );
+            if (!$heightNew) {
+                $heightNew = (int)round($widthNew / $aspectRatio);
             }
-
 
         } else {
 
-            list( $new_w, $new_h ) = wp_constrain_dimensions( $orig_w, $orig_h, $dest_w, $dest_h );
+            list($widthNew, $heightNew) = wp_constrain_dimensions($origWidth, $origHeight, $destWidth, $destHeight);
         }
 
 
-       return array(  (int) $new_w, (int) $new_h );
+        return [(int)$widthNew, (int)$heightNew];
     }
 }
