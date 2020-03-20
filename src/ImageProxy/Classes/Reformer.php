@@ -281,6 +281,11 @@ class Reformer
         return $out;
     }
 
+    /**
+     * Отколючает создание (ядром WordPress) дополнительных размеров изображений
+     * @param $sizes
+     * @return array
+     */
     public function disableGenerateThumbnails($sizes)
     {
         $this->cliHelper();
@@ -303,6 +308,12 @@ class Reformer
         }
     }
 
+    /**
+     * Создает виртуальные копи картинок путем подмены метаданных
+     * @param $data
+     * @param $id
+     * @return mixed
+     */
     public function generateVirtualSizes($data, $id)
     {
         $sizes = wp_get_additional_image_sizes();
@@ -442,6 +453,13 @@ class Reformer
         return $out;
     }
 
+    /**
+     * Заменяет изображения в src картнок WordPress
+     * @param $image
+     * @param $id
+     * @param $size
+     * @return mixed
+     */
     public function src($image, $id, $size)
     {
 
@@ -635,6 +653,11 @@ class Reformer
         return true;
     }
 
+    /**
+     * Находит картинки в тексте статьи и заменяет и подменяет их на url картинок в конвертере
+     * @param $str
+     * @return string|string[]
+     */
     public function regexSrc($str)
     {
 
