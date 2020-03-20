@@ -305,7 +305,6 @@ class Reformer
 
     public function generateVirtualSizes($data, $id)
     {
-
         $sizes = wp_get_additional_image_sizes();
         $sizes = array_merge($sizes, $this->getDefaultImageSize());
         $baseName = basename($data['file']);
@@ -313,6 +312,7 @@ class Reformer
         $newSizes = [];
 
         foreach ($sizes as $key => $val) {
+
             $p = $data['width'] / $data['height'];
 
             unset($val['crop']);
@@ -362,69 +362,22 @@ class Reformer
         return $data;
     }
 
-    public function src($image, $id, $size)
+    private function srcsetSizesCropFinder($width, $height)
     {
+        $sizes = wp_get_registered_image_subsizes();
 
-        if (apply_filters('ImageProxy__image-id-skip', false, $id)) {
-            return $image;
-        }
-        $meta = wp_get_attachment_metadata($id);
-        $sizes = wp_get_additional_image_sizes();
-        $sizes = array_merge($sizes, $this->getDefaultImageSize());
-
-        $s = "?origin=" . _wp_get_attachment_relative_path($image[0] . "/" . basename($image[0]));
-        $image[0] = $this->replaceHost($image['0']);
-        $image[0] = $this->replaceHost(wp_get_attachment_url($id));
-        $sizeMeta = (isset($sizes[$size]) ? $sizes[$size] : 0);
-        $crop = $this->cropType($sizeMeta['crop']);
-
-        if (isset($image[0])) {
-
-            if (is_string($size)) {
-                $builderArgs = $this->cropHelper(
-                    $meta['width'], $meta['height'],
-                    $sizeMeta['width'], $sizeMeta['height'],
-                    $sizeMeta['crop']
-                );
-
-                $image[0] = $this->proxy->builder(
-                    apply_filters(
-                        'ImageProxy__image-attachment-src',
-                        array_merge($builderArgs, $crop),
-                        $image[0],
-                        $id
-                    ),
-                    $image[0]
-                );
-            } elseif (is_array($size)) {
-                $url = wp_get_attachment_url($id);
-                $url = $this->replaceHost($url);
-                $builderArgs = $this->cropHelper(
-                    $meta['width'], $meta['height'],
-                    !isset($size[0]) ? 0 : $size[0], !isset($size[1]) ? 0 : $size[1],
-                    $sizeMeta['crop']
-                );
-
-                $image[0] = $this->proxy->builder(
-                    apply_filters(
-                        'ImageProxy__image-attachment-src',
-                        array_merge($builderArgs, $crop),
-                        $url,
-                        $id
-                    ),
-                    $url
-                );
+        foreach ($sizes as $size) {
+            if ($width == $size['width'] && $height == $size['height']) {
+                return $size['crop'];
             }
-
         }
 
-        $image[0] = $image[0] . $s;
-
-        return $image;
+        return ['center', 'center'];
     }
 
     public function srcset($sources, $sizeArray, $imageSrc, $imageMeta, $id)
     {
+        $id = (int)$id;
 
         if (apply_filters('ImageProxy__image-id-skip', false, $id)) {
             return $sources;
@@ -452,21 +405,30 @@ class Reformer
 
         $out = [];
 
+
         foreach ($sources as $source) {
             $findSize = $sizesByName($source['url']);
-
 
             if (empty($findSize)) {
                 $source['url'] = $imageSrc;
             } else {
 
+                $builderArgs = $this->cropHelper(
+                    $sizeArray[0], $sizeArray[1],
+                    empty($findSize['width']) ? 0 : $findSize['width'],
+                    empty($findSize['height']) ? 0 : $findSize['height'],
+                    $this->srcsetSizesCropFinder($sizeArray[0], $sizeArray[1])
+                );
+
                 $source['url'] = $this->proxy->builder(
                     apply_filters(
                         'ImageProxy__image-attachment-srcset',
-                        [
-                            'width' => empty($findSize['width']) ? 0 : $findSize['width'],
-                            'height' => empty($findSize['height']) ? 0 : $findSize['height'],
-                        ],
+                        array_merge(
+                            $builderArgs,
+                            $this->cropType(
+                                $this->srcsetSizesCropFinder($sizeArray[0], $sizeArray[1])
+                            )
+                        ),
                         $originFile,
                         $id
                     ),
@@ -480,9 +442,68 @@ class Reformer
         return $out;
     }
 
-    public function postHtml($html)
+    public function src($image, $id, $size)
     {
 
+        if (apply_filters('ImageProxy__image-id-skip', false, $id)) {
+            return $image;
+        }
+        $meta = wp_get_attachment_metadata($id);
+        $sizes = wp_get_additional_image_sizes();
+        $sizes = array_merge($sizes, $this->getDefaultImageSize());
+
+        $s = "?origin=" . _wp_get_attachment_relative_path($image[0] . "/" . basename($image[0]));
+        $image[0] = $this->replaceHost($image['0']);
+        $image[0] = $this->replaceHost(wp_get_attachment_url($id));
+
+
+        if (isset($image[0])) {
+
+            if (is_string($size)) {
+
+                $sizeMeta = (isset($sizes[$size]) ? $sizes[$size] : 0);
+                $builderArgs = $this->cropHelper(
+                    $meta['width'], $meta['height'],
+                    $sizeMeta['width'], $sizeMeta['height'],
+                    $sizeMeta['crop']
+                );
+
+                $image[0] = $this->proxy->builder(
+                    apply_filters(
+                        'ImageProxy__image-attachment-src',
+                        array_merge($builderArgs, $this->cropType($sizeMeta['crop'])),
+                        $image[0],
+                        $id
+                    ),
+                    $image[0]
+                );
+            } elseif (is_array($size)) {
+                $url = wp_get_attachment_url($id);
+                $url = $this->replaceHost($url);
+
+                $image[0] = $this->proxy->builder(
+                    apply_filters(
+                        'ImageProxy__image-attachment-src',
+                        [
+                            'width' => !isset($size[0]) ? 0 : $size[0],
+                            'height' => !isset($size[1]) ? 0 : $size[1],
+                        ],
+                        $url,
+                        $id
+                    ),
+                    $url
+                );
+            }
+
+        }
+
+        $image[0] = $image[0] . $s;
+
+        return $image;
+    }
+
+    public function postHtml($html)
+    {
         return $this->regexSrc($html);
     }
 
@@ -561,6 +582,15 @@ class Reformer
         }
     }
 
+    /**
+     * @param $origWidth
+     * @param $origHeight
+     * @param $destWidth
+     * @param $destHeight
+     * @param bool $crop
+     * @return array
+     * @see image_resize_dimensions, imagecopyresampled
+     */
     private function cropHelper($origWidth, $origHeight, $destWidth, $destHeight, $crop = false)
     {
         if (empty($destHeight)) {
