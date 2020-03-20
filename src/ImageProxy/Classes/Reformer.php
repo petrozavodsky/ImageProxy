@@ -53,7 +53,7 @@ class Reformer
 
         add_filter('wp_calculate_image_srcset', [$this, 'srcset'], 20, 5);
 
-        add_filter('the_content', [$this, 'postHtml'], 20);
+        add_filter('the_content', [$this, 'regexSrc'], 20);
 
         add_filter('wp_get_attachment_metadata', [$this, 'generateVirtualSizes'], 20, 2);
 
@@ -500,11 +500,6 @@ class Reformer
         $image[0] = $image[0] . $s;
 
         return $image;
-    }
-
-    public function postHtml($html)
-    {
-        return $this->regexSrc($html);
     }
 
     /**
