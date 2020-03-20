@@ -471,10 +471,10 @@ class Reformer
                 'right|bottom' => 'soea',
                 'left|bottom' => 'sowe',
             ];
-
+            $cropString = implode('|', $crop);
             return [
                 'g' => [
-                    'gravity_type' => implode('|', $list),
+                    'gravity_type' => $list[$cropString],
                 ]
             ];
 
@@ -502,6 +502,46 @@ class Reformer
         }
     }
 
+    private function cropHelper($origWidth, $origHeight, $destWidth, $destHeight, $crop = false)
+    {
+
+        // Stop if the destination size is larger than the original image dimensions.
+        if (empty($destHeight)) {
+            if ($origWidth < $destWidth) {
+                return false;
+            }
+        } elseif (empty($destWidth)) {
+            if ($origHeight < $destHeight) {
+                return false;
+            }
+        } else {
+            if ($origWidth < $destWidth && $origHeight < $destHeight) {
+                return false;
+            }
+        }
+
+        if ($crop) {
+            $aspectRatio = $origWidth / $origHeight;
+            $widthNew = min($destWidth, $origWidth);
+            $heightNew = min($destHeight, $origHeight);
+
+            if (!$widthNew) {
+                $widthNew = (int)round($heightNew * $aspectRatio);
+            }
+
+            if (!$heightNew) {
+                $heightNew = (int)round($widthNew / $aspectRatio);
+            }
+
+        } else {
+
+            list($widthNew, $heightNew) = wp_constrain_dimensions($origWidth, $origHeight, $destWidth, $destHeight);
+        }
+
+
+        return [(int)$widthNew, (int)$heightNew];
+    }
+
     public function src($image, $id, $size)
     {
 
@@ -523,11 +563,13 @@ class Reformer
             if (is_string($size)) {
                 $sizeMeta = (isset($sizes[$size]) ? $sizes[$size] : 0);
 
-//                if (5648 == $id) {
-//                   d(
-//                       $this->cropType($sizeMeta['crop'])
-//                   );
-//                }
+                if (5648 == $id) {
+                    $meta = wp_get_attachment_metadata($id);
+                    d(
+                        $this->cropType($sizeMeta['crop']),
+                        $this->cropHelper($meta['width'], $meta['height'], $sizeMeta['width'], $sizeMeta['height'], $sizeMeta['crop'])
+                    );
+                }
 
                 $image[0] = $this->proxy->builder(
                     apply_filters(
@@ -669,43 +711,4 @@ class Reformer
         );
     }
 
-    private function cropHelper($origWidth, $origHeight, $destWidth, $destHeight, $crop = false)
-    {
-
-        // Stop if the destination size is larger than the original image dimensions.
-        if (empty($destHeight)) {
-            if ($origWidth < $destWidth) {
-                return false;
-            }
-        } elseif (empty($destWidth)) {
-            if ($origHeight < $destHeight) {
-                return false;
-            }
-        } else {
-            if ($origWidth < $destWidth && $origHeight < $destHeight) {
-                return false;
-            }
-        }
-
-        if ($crop) {
-            $aspectRatio = $origWidth / $origHeight;
-            $widthNew = min($destWidth, $origWidth);
-            $heightNew = min($destHeight, $origHeight);
-
-            if (!$widthNew) {
-                $widthNew = (int)round($heightNew * $aspectRatio);
-            }
-
-            if (!$heightNew) {
-                $heightNew = (int)round($widthNew / $aspectRatio);
-            }
-
-        } else {
-
-            list($widthNew, $heightNew) = wp_constrain_dimensions($origWidth, $origHeight, $destWidth, $destHeight);
-        }
-
-
-        return [(int)$widthNew, (int)$heightNew];
-    }
 }

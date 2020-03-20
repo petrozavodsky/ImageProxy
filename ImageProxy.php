@@ -51,4 +51,4 @@ function ImageProxy__init() {
 	new ImageProxy();
 }
 
-//add_action( 'plugins_loaded', 'ImageProxy__init', 30 );
+add_action( 'plugins_loaded', 'ImageProxy__init', 30 );
