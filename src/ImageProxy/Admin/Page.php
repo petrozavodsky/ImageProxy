@@ -23,7 +23,7 @@ class Page
             'key' => '',
             'salt' => '',
             'host' => '',
-            'active'=>0,
+            'active' => 0,
         ]);
     }
 
@@ -38,13 +38,13 @@ class Page
             [$this, 'PageContent']
         );
 
-        $descriptionSection = $this->section('base', "Base Settings", "");
+        $descriptionSection = $this->section('base', __('Base Settings', 'ImageProxy'), "");
 
         $this->field(
             $descriptionSection,
             'key',
             [
-                'label'=>__('Key','ImageProxy'),
+                'label' => __('Key', 'ImageProxy'),
                 'tag' => 'input',
                 'attrs' => [
                     'required' => 'required',
@@ -57,7 +57,7 @@ class Page
             $descriptionSection,
             'salt',
             [
-                'label'=>__('Salt','ImageProxy'),
+                'label' => __('Salt', 'ImageProxy'),
                 'tag' => 'input',
                 'attrs' => [
                     'required' => 'required',
@@ -70,7 +70,7 @@ class Page
             $descriptionSection,
             'host',
             [
-                'label'=>__('Host','ImageProxy'),
+                'label' => __('Host', 'ImageProxy'),
                 'tag' => 'input',
                 'attrs' => [
                     'required' => 'required',
@@ -84,7 +84,7 @@ class Page
             $descriptionSection,
             'active',
             [
-                'label'=>__('Active','ImageProxy'),
+                'label' => __('Active', 'ImageProxy'),
                 'tag' => 'select',
                 'attrs' => [
                     'required' => 'required',
