@@ -23,6 +23,7 @@ class Page
             'key' => '',
             'salt' => '',
             'host' => '',
+            'active'=>0,
         ]);
     }
 
@@ -43,6 +44,7 @@ class Page
             $descriptionSection,
             'key',
             [
+                'label'=>__('Key','ImageProxy'),
                 'tag' => 'input',
                 'attrs' => [
                     'required' => 'required',
@@ -55,6 +57,20 @@ class Page
             $descriptionSection,
             'salt',
             [
+                'label'=>__('Salt','ImageProxy'),
+                'tag' => 'input',
+                'attrs' => [
+                    'required' => 'required',
+                    'type' => 'text'
+                ]
+            ]
+        );
+
+        $this->field(
+            $descriptionSection,
+            'host',
+            [
+                'label'=>__('Host','ImageProxy'),
                 'tag' => 'input',
                 'attrs' => [
                     'required' => 'required',
@@ -66,13 +82,18 @@ class Page
 
         $this->field(
             $descriptionSection,
-            'host',
+            'active',
             [
-                'tag' => 'input',
+                'label'=>__('Active','ImageProxy'),
+                'tag' => 'select',
                 'attrs' => [
                     'required' => 'required',
-                    'type' => 'text'
-                ]
+                ],
+                'options' => [
+                    0 => __('Off', 'ImageProxy'),
+                    1 => __('On', 'ImageProxy'),
+                ],
+                'selected' => 0,
             ]
         );
 
