@@ -5,213 +5,220 @@ namespace ImageProxy\Classes;
 use ImageProxy\Admin\Page;
 use WP_Error;
 
-class Builder {
+class Builder
+{
+    private $options = [];
 
-	private $options = [];
+    private $key;
 
-	private $key = '943b421c9eb07c830af81030552c86009268de4e532ba2ee2eab8247c6da0881';
+    private $salt;
 
-	private $salt = '520f986b998545b4785e0defbc4f3c1203f22de2374a3d53cb7a7fe9fea309c5';
+    public function __construct()
+    {
+        $this->options = Page::getOptions();
+        $this->key = $this->options['key'];
+        $this->salt = $this->options['salt'];
+    }
 
-	private $host = 'https://cdn-0.royalcheese.ru';
+    public function __get($prop)
+    {
+        if (in_array($prop, ['key', 'key'])) {
+            return $this->options[$prop];
+        } elseif ('host' == $prop) {
+            $hosts = $this->parseHostsOptions();
 
-	public function __construct() {
-		$this->options = Page::getOptions();
-	}
+            return $hosts[0];
+        }
+    }
 
-	public function __get( $prop ) {
-		if ( in_array( $prop, [ 'key', 'key' ] ) ) {
-			return $this->options[ $prop ];
-		} elseif ( 'host' == $prop ) {
-			$hosts = $this->parseHostsOptions();
+    private function getHostByImage($salt)
+    {
+        $object = new SelectCdnAddress($salt, $this->parseHostsOptions());
 
-			return $hosts[0];
-		}
-	}
+        return $object->getAddress();
+    }
 
-	private function getHostByImage( $salt ) {
-		$object = new SelectCdnAddress( $salt, $this->parseHostsOptions() );
+    /**
+     * Возвращает доступные домены CDN в виде массива
+     *
+     * @return array|string
+     */
+    private function parseHostsOptions()
+    {
+        $host = $this->options['host'];
 
-		return $object->getAddress();
-	}
+        if (false === strpos($host, ',')) {
+            return [trim($host)];
+        }
 
-	/**
-	 * Возвращает доступные домены CDN в виде массива
-	 *
-	 * @return array|string
-	 */
-	private function parseHostsOptions() {
-		$host = $this->options['host'];
+        $array = explode(',', $host);
 
-		if ( false === strpos( $host, ',' ) ) {
-			return [ trim( $host ) ];
-		}
+        return array_map('trim', $array);
+    }
 
-		$array = explode( ',', $host );
+    public function sign($path)
+    {
+        $keyBin = pack("H*", $this->key);
+        if (empty($keyBin)) {
 
-		return array_map( 'trim', $array );
-	}
+            return new WP_Error('error', 'Key expected to be hex-encoded string');
+        }
 
-	public function sign( $path ) {
-		$keyBin = pack( "H*", $this->key );
-		if ( empty( $keyBin ) ) {
+        $saltBin = pack("H*", $this->salt);
 
-			return new WP_Error( 'error', 'Key expected to be hex-encoded string' );
-		}
+        if (empty($saltBin)) {
 
-		$saltBin = pack( "H*", $this->salt );
+            return new WP_Error('error', 'Salt expected to be hex-encoded string');
+        }
 
-		if ( empty( $saltBin ) ) {
+        $signature = rtrim(strtr(base64_encode(hash_hmac('sha256', $saltBin . $path, $keyBin, true)), '+/', '-_'), '=');
 
-			return new WP_Error( 'error', 'Salt expected to be hex-encoded string' );
-		}
+        return sprintf("/%s%s", $signature, $path);
+    }
 
-		$signature = rtrim( strtr( base64_encode( hash_hmac( 'sha256', $saltBin . $path, $keyBin, true ) ), '+/', '-_' ), '=' );
+    public function builderBasic($data, $url)
+    {
 
-		return sprintf( "/%s%s", $signature, $path );
-	}
+        $default = [
+            'resize' => 'fill',
+            'width' => 0,
+            'height' => 0,
+            'gravity' => 'no',
+            'enlarge' => 1,
+        ];
 
-	public function builderBasic( $data, $url ) {
+        $data = wp_parse_args($data, $default);
 
-		$default = [
-			'resize'  => 'fill',
-			'width'   => 0,
-			'height'  => 0,
-			'gravity' => 'no',
-			'enlarge' => 1,
-		];
-
-		$data = wp_parse_args( $data, $default );
-
-		array_unshift( $data, '' );
-
-
-		array_push( $data, rtrim( strtr( base64_encode( $url ), '+/', '-_' ), '=' ) );
-
-		$path = implode( '/', $data );
+        array_unshift($data, '');
 
 
-		return $this->getHostByImage( $url ) . $this->sign( $path );
+        array_push($data, rtrim(strtr(base64_encode($url), '+/', '-_'), '='));
 
-	}
+        $path = implode('/', $data);
 
-	public function builder( $data, $url ) {
 
-		$basicType = apply_filters( 'ImageProxy__builder-type', false );
+        return $this->getHostByImage($url) . $this->sign($path);
 
-		if ( $basicType ) {
-			return $this->builderBasic( $data, $url );
-		}
+    }
 
-		$default = [
-			'rs'    => [
-				'resizing_type' => 'fill',
-				'width'         => 0,
-				'height'        => 0,
-				'dpr'           => '',
-				'enlarge'       => 0,
-				'extend'        => '',
-			],
-			'g'     => [
-				'gravity_type' => 'ce',
-				'x_offset'     => 0,
-				'y_offset'     => 0,
-			],
-			'c'     => [
-				'height' => 0,
-				'width'  => 0,
-			],
-			't'     => '',
-			'q'     => '',
-			'mb'    => '',
-			'bg'    => '',
-			'bl'    => '',
-			'wm'    => [
-				'opacity'  => '',
-				'position' => '',
-				'x_offset' => '',
-				'y_offset' => '',
-				'scale'    => '',
-			],
-			'pr'    => [],
-			'cb'    => '',
-			'fn'    => '',
-			'plain' => '',
-			'ext'   => '',
-		];
+    public function builder($data, $url)
+    {
 
-		$data = wp_parse_args( $data, $default );
+        $basicType = apply_filters('ImageProxy__builder-type', false);
 
-		if ( isset( $data['resize'] ) && ! empty( $data['resize'] ) ) {
-			$data['rs']['resizing_type'] = $data['resize'];
-			unset( $data['resize'] );
-		}
+        if ($basicType) {
+            return $this->builderBasic($data, $url);
+        }
 
-		if ( isset( $data['width'] ) && ! empty( $data['width'] ) ) {
-			$data['rs']['width'] = $data['width'];
-			unset( $data['width'] );
-		}
+        $default = [
+            'rs' => [
+                'resizing_type' => 'fill',
+                'width' => 0,
+                'height' => 0,
+                'dpr' => '',
+                'enlarge' => 0,
+                'extend' => '',
+            ],
+            'g' => [
+                'gravity_type' => 'ce',
+                'x_offset' => 0,
+                'y_offset' => 0,
+            ],
+            'c' => [
+                'height' => 0,
+                'width' => 0,
+            ],
+            't' => '',
+            'q' => '',
+            'mb' => '',
+            'bg' => '',
+            'bl' => '',
+            'wm' => [
+                'opacity' => '',
+                'position' => '',
+                'x_offset' => '',
+                'y_offset' => '',
+                'scale' => '',
+            ],
+            'pr' => [],
+            'cb' => '',
+            'fn' => '',
+            'plain' => '',
+            'ext' => '',
+        ];
 
-		if ( isset( $data['height'] ) && ! empty( $data['height'] ) ) {
-			$data['rs']['height'] = $data['height'];
-			unset( $data['height'] );
-		}
+        $data = wp_parse_args($data, $default);
 
-		if ( isset( $data['gravity'] ) && ! empty( $data['gravity'] ) ) {
-			$data['g']['gravity_type'] = $data['gravity'];
-			unset( $data['gravity'] );
-		}
+        if (isset($data['resize']) && !empty($data['resize'])) {
+            $data['rs']['resizing_type'] = $data['resize'];
+            unset($data['resize']);
+        }
 
-		if ( isset( $data['enlarge'] ) && ! empty( $data['enlarge'] ) ) {
-			$data['rs']['enlarge'] = ( 'no' == $data['enlarge'] ) ? 0 : $data['enlarge'];
-			unset( $data['enlarge'] );
-		}
+        if (isset($data['width']) && !empty($data['width'])) {
+            $data['rs']['width'] = $data['width'];
+            unset($data['width']);
+        }
 
-		$extension = $data['ext'];
-		unset( $data['ext'] );
+        if (isset($data['height']) && !empty($data['height'])) {
+            $data['rs']['height'] = $data['height'];
+            unset($data['height']);
+        }
 
-		$array = [];
-		foreach ( $data as $k => $v ) {
-			if ( ! empty( $v ) ) {
+        if (isset($data['gravity']) && !empty($data['gravity'])) {
+            $data['g']['gravity_type'] = $data['gravity'];
+            unset($data['gravity']);
+        }
 
-				if ( is_array( $v ) && ! empty( array_diff( $v, [ '' ] ) ) ) {
-					$array[] = "{$k}:" . implode( ':', array_diff( $v, [ '' ] ) );
-				}
+        if (isset($data['enlarge']) && !empty($data['enlarge'])) {
+            $data['rs']['enlarge'] = ('no' == $data['enlarge']) ? 0 : $data['enlarge'];
+            unset($data['enlarge']);
+        }
 
-			}
-		}
+        $extension = $data['ext'];
+        unset($data['ext']);
 
-		if ( ! empty( $data['cb'] ) ) {
-			$array[] = $data['cb'];
-		}
+        $array = [];
+        foreach ($data as $k => $v) {
+            if (!empty($v)) {
 
-		if ( ! empty( $data['fn'] ) ) {
-			$array[] = $data['fn'];
-		}
+                if (is_array($v) && !empty(array_diff($v, ['']))) {
+                    $array[] = "{$k}:" . implode(':', array_diff($v, ['']));
+                }
 
-		if ( ! empty( $data['plain'] ) ) {
+            }
+        }
 
-			if ( ! empty( $extension ) ) {
-				$url .= "@{$extension}";
-			}
+        if (!empty($data['cb'])) {
+            $array[] = $data['cb'];
+        }
 
-			$array[] = "plain/{$url}";
+        if (!empty($data['fn'])) {
+            $array[] = $data['fn'];
+        }
 
-		} else {
+        if (!empty($data['plain'])) {
 
-			$url = rtrim( strtr( base64_encode( $url ), '+/', '-_' ), '=' );
+            if (!empty($extension)) {
+                $url .= "@{$extension}";
+            }
 
-			if ( ! empty( $extension ) ) {
-				$url .= ".{$extension}";
-			}
+            $array[] = "plain/{$url}";
 
-			$array[] = $url;
-		}
+        } else {
 
-		$query = "/" . implode( '/', $array );
+            $url = rtrim(strtr(base64_encode($url), '+/', '-_'), '=');
 
-		return $this->getHostByImage( $url ) . $this->sign( $query );
+            if (!empty($extension)) {
+                $url .= ".{$extension}";
+            }
 
-	}
+            $array[] = $url;
+        }
+
+        $query = "/" . implode('/', $array);
+
+        return $this->getHostByImage($url) . $this->sign($query);
+
+    }
 
 }

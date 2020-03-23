@@ -13,6 +13,17 @@ class Page
         add_action('admin_menu', [$this, 'subPage']);
     }
 
+    public static function getOption($key)
+    {
+        $options = self::getOptions();
+
+        if (!isset($options[$key]) || empty($options[$key])) {
+            return false;
+        }
+
+        return $options[$key];
+    }
+
     /**
      * Получаем опции из базы
      * @return array
@@ -93,7 +104,6 @@ class Page
                     0 => __('Off', 'ImageProxy'),
                     1 => __('On', 'ImageProxy'),
                 ],
-                'selected' => 0,
             ]
         );
 
@@ -131,7 +141,7 @@ class Page
 
         if ('select' == $data['tag']) {
             $default['options'] = [];
-            $default['selected'] = '';
+
         }
 
         $data = wp_parse_args($data, $default);
@@ -168,7 +178,8 @@ class Page
         } else if ('select' == $data['tag']) {
             $out .= "<select name='{$commonNamePrefix}[{$data['name']}]' class='{$class}' {$attributes()} >";
             foreach ($data['options'] as $key => $value) {
-                $out .= "<option value='{$key}' " . selected($data['selected'], $key, false) . " >{$value}</option>";
+
+                $out .= "<option value='{$key}' " . selected($data['value'], $key, false) . " >{$value}</option>";
             }
             $out .= "</select>";
         }
