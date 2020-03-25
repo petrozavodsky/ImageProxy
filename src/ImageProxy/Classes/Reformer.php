@@ -62,7 +62,7 @@ class Reformer
         add_filter('get_avatar_data', [$this, 'userAvatarDataFallback'], 20, 2);
     }
 
-    private function isContainSizeStr($str)
+    private static function isContainSizeStr($str)
     {
         preg_match("~(-\d+?x\d+?)\.\D{3,4}$~iU", $str, $m);
 
@@ -99,9 +99,9 @@ class Reformer
 
         $src = $this->getAttribute('src', $avatar);
 
-        if ($this->checkComplete($src)) {
+        if (self::checkComplete($src)) {
 
-            $subString = $this->isContainSizeStr($src);
+            $subString = self::isContainSizeStr($src);
 
             $newSrc = $src;
 
@@ -641,7 +641,7 @@ class Reformer
         return ['width' => (int)$widthNew, 'height' => (int)$heightNew];
     }
 
-    private function checkComplete($url)
+    public static function checkComplete($url)
     {
         $u = wp_upload_dir();
         $pattern = $u['baseurl'];
@@ -671,7 +671,7 @@ class Reformer
 
                 $src = $this->getAttribute('src', $image);
                 if (!apply_filters('ImageProxy__image-src-skip', false, $src)) {
-                    if ($this->checkComplete($src)) {
+                    if (self::checkComplete($src)) {
 
                         $height = $this->getAttribute('height', $image);
                         $width = $this->getAttribute('width', $image);
