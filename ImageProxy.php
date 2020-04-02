@@ -32,7 +32,7 @@ use ImageProxy\Compatibility\YoastSeo;
 
 class ImageProxy extends Wrap
 {
-    public $version = '1.0.3';
+    public $version = '1.0.1';
     public static $textdomine;
 
     public function __construct()

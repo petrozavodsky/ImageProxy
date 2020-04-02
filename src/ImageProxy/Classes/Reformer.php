@@ -480,12 +480,6 @@ class Reformer
             if (is_string($size)) {
 
                 $sizeMeta = (isset($sizes[$size]) ? $sizes[$size] : 0);
-                $sizeMeta = wp_parse_args($sizeMeta, [
-                    'width' => 0,
-                    'height' => 0,
-                    'crop' => ['center', 'center'],
-                ]);
-
                 $builderArgs = $this->cropHelper(
                     $meta['width'], $meta['height'],
                     $sizeMeta['width'], $sizeMeta['height'],
