@@ -447,6 +447,8 @@ class Reformer
                 );
             }
 
+            $source = array_diff($source, [false]);
+
             $out[] = $source;
         }
 
