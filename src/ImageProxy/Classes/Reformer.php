@@ -316,6 +316,11 @@ class Reformer
      */
     public function generateVirtualSizes($data, $id)
     {
+
+        if (apply_filters('ImageProxy__image-id-skip', false, $id)) {
+            return  $data;
+        }
+
         $sizes = wp_get_additional_image_sizes();
         $sizes = array_merge($sizes, $this->getDefaultImageSize());
         $baseName = basename($data['file']);
