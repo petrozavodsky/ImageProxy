@@ -28,15 +28,15 @@ class YoastSeo
 
                     $newUrl = preg_replace("#(-\d+x\d+)(\.png|jpeg|jpg|gif)$#i", '${2}', $url);
 
-                    return $this->proxy->builder(
+                    return $this->removeOrigin($this->proxy->builder(
                         [],
                         $newUrl
-                    );
+                    ));
 
                 }
             }
 
-            return $url;
+            return $this->removeOrigin($url);
         });
     }
 
