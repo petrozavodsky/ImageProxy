@@ -11,12 +11,12 @@ use SplFileInfo;
 //ImageProxy__image-attachment-src
 //ImageProxy__image-content-src
 //ImageProxy__image-id-skip
-//ImageProxy__image-virtual-sizes
 //ImageProxy__image-src-skip
 //ImageProxy__image-avatar-src
 //ImageProxy__image-avatar-data-src
 //ImageProxy__image-convert-disable
 //ImageProxy__image-disable-sizes
+//ImageProxy__image-default-virtual-sizes
 
 class Reformer
 {
@@ -319,11 +319,13 @@ class Reformer
     {
 
         if (apply_filters('ImageProxy__image-id-skip', false, $id)) {
-            return apply_filters('ImageProxy__image-virtual-sizes', $data);
+            return  $data;
         }
 
         $sizes = wp_get_additional_image_sizes();
         $sizes = array_merge($sizes, $this->getDefaultImageSize());
+        $sizes = apply_filters('ImageProxy__image-default-virtual-sizes', $sizes);
+
         $baseName = basename($data['file']);
 
         $newSizes = [];
@@ -361,7 +363,6 @@ class Reformer
             'mime-type' => get_post_mime_type($id)
         ];
 
-
         foreach ($newSizes as $key => $val) {
 
             $adinational[$key] = $val;
@@ -376,8 +377,7 @@ class Reformer
 
         $data['sizes'] = $adinational;
 
-        return apply_filters('ImageProxy__image-virtual-sizes', $data);
-
+        return $data;
     }
 
     private function srcsetSizesCropFinder($width, $height)
