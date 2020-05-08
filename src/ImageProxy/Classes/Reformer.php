@@ -11,6 +11,7 @@ use SplFileInfo;
 //ImageProxy__image-attachment-src
 //ImageProxy__image-content-src
 //ImageProxy__image-id-skip
+//ImageProxy__image-virtual-sizes
 //ImageProxy__image-src-skip
 //ImageProxy__image-avatar-src
 //ImageProxy__image-avatar-data-src
@@ -318,7 +319,7 @@ class Reformer
     {
 
         if (apply_filters('ImageProxy__image-id-skip', false, $id)) {
-            return  $data;
+            return apply_filters('ImageProxy__image-virtual-sizes', $data);
         }
 
         $sizes = wp_get_additional_image_sizes();
@@ -375,7 +376,8 @@ class Reformer
 
         $data['sizes'] = $adinational;
 
-        return $data;
+        return apply_filters('ImageProxy__image-virtual-sizes', $data);
+
     }
 
     private function srcsetSizesCropFinder($width, $height)
