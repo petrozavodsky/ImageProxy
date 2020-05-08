@@ -40,6 +40,11 @@ class YoastSeo
         });
     }
 
+    private function removeOrigin($string)
+    {
+        return preg_replace("/\?origin=.*$/mi", '', $string);
+    }
+
     public function validImageUrl($valid, $url)
     {
 
