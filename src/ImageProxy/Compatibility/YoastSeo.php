@@ -15,31 +15,6 @@ class YoastSeo
     {
         $this->proxy = new Builder();
 
-        add_filter('wpseo_image_sizes', function ($array) {
-
-            array_unshift($array, 'image_600x600', 'image_600x314');
-
-            return $array;
-        });
-
-        add_filter('ImageProxy__image-default-virtual-sizes', function ($array) {
-
-            $array['image_600x314'] = [
-                'width' => 600,
-                'height' => 314,
-                'crop' => true,
-            ];
-
-            $array['image_600x600'] = [
-                'width' => 600,
-                'height' => 600,
-                'crop' => true,
-            ];
-
-            return $array;
-        });
-
-
         add_filter('wpseo_opengraph_is_valid_image_url', [$this, 'validImageUrl'], 10, 2);
 
         add_filter('wpseo_opengraph_image', function ($url) {
@@ -51,28 +26,18 @@ class YoastSeo
 
                 if ($hostUrl == $hostSite) {
 
-                    $newUrl = preg_replace("#-(\d+x\d+)\.(png|jpeg|jpg|gif)$#i", '${2}', $url);
+                    $newUrl = preg_replace("#(-\d+x\d+)(\.png|jpeg|jpg|gif)$#i", '${2}', $url);
 
-                    return $this->proxy->builder(
-                        [
-                            //                            'rs' => [
-                            //                                'resizing_type' => 'fill',
-                            //                                'width' => 600,
-                            //                                'height' => 600,
-                            //                                'dpr' => '',
-                            //                                'enlarge' => 0,
-                            //                                'extend' => '',
-                            //                            ],
-                        ],
+                    return $this->removeOrigin($this->proxy->builder(
+                        [],
                         $newUrl
-                    );
+                    ));
 
                 }
             }
 
-            return $url;
+            return $this->removeOrigin($url);
         });
-
     }
 
     private function removeOrigin($string)
