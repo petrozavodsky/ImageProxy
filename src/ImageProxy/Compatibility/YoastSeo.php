@@ -66,6 +66,7 @@ class YoastSeo
                                 'enlarge' => 0,
                                 'extend' => '',
                             ],
+                            'ext' =>'jpg',
                         ],
                        $this->replaceHost( $newUrl )
                     ));
