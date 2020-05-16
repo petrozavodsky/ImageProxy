@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: ImageProxy plugin
-Plugin URI: http://alkoweb.ru
+Plugin URI: https://alkoweb.ru
 Author: Petrozavodsky
-Author URI: http://alkoweb.ru
+Author URI: https://alkoweb.ru
 Text Domain: ImageProxy
 Domain Path: /languages
 Requires PHP: 7.0
@@ -28,21 +28,33 @@ new Autoloader(__FILE__, 'ImageProxy');
 
 use ImageProxy\Base\Wrap;
 use ImageProxy\Classes\Reformer;
+use ImageProxy\Compatibility\YoastSeo;
 
 class ImageProxy extends Wrap
 {
-    public $version = '1.0.3';
+    public $version = '1.0.1';
     public static $textdomine;
 
     public function __construct()
     {
         self::$textdomine = $this->setTextdomain();
-
-        new Reformer();
         new Page();
-
+        $this->active();
     }
 
+    public function active()
+    {
+
+        if (!empty(Page::getOption('active'))) {
+            new Reformer();
+            $this->pluginsCompat();
+        }
+    }
+
+    private function pluginsCompat()
+    {
+        new YoastSeo();
+    }
 }
 
 function ImageProxy__init()

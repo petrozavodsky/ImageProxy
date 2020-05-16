@@ -13,6 +13,17 @@ class Page
         add_action('admin_menu', [$this, 'subPage']);
     }
 
+    public static function getOption($key)
+    {
+        $options = self::getOptions();
+
+        if (!isset($options[$key]) || empty($options[$key])) {
+            return false;
+        }
+
+        return $options[$key];
+    }
+
     /**
      * Получаем опции из базы
      * @return array
@@ -23,6 +34,7 @@ class Page
             'key' => '',
             'salt' => '',
             'host' => '',
+            'active' => 0,
         ]);
     }
 
@@ -37,12 +49,13 @@ class Page
             [$this, 'PageContent']
         );
 
-        $descriptionSection = $this->section('base', "Base Settings", "");
+        $descriptionSection = $this->section('base', __('Base Settings', 'ImageProxy'), "");
 
         $this->field(
             $descriptionSection,
             'key',
             [
+                'label' => __('Key', 'ImageProxy'),
                 'tag' => 'input',
                 'attrs' => [
                     'required' => 'required',
@@ -55,6 +68,20 @@ class Page
             $descriptionSection,
             'salt',
             [
+                'label' => __('Salt', 'ImageProxy'),
+                'tag' => 'input',
+                'attrs' => [
+                    'required' => 'required',
+                    'type' => 'text'
+                ]
+            ]
+        );
+
+        $this->field(
+            $descriptionSection,
+            'host',
+            [
+                'label' => __('Host', 'ImageProxy'),
                 'tag' => 'input',
                 'attrs' => [
                     'required' => 'required',
@@ -66,13 +93,17 @@ class Page
 
         $this->field(
             $descriptionSection,
-            'host',
+            'active',
             [
-                'tag' => 'input',
+                'label' => __('Active', 'ImageProxy'),
+                'tag' => 'select',
                 'attrs' => [
                     'required' => 'required',
-                    'type' => 'text'
-                ]
+                ],
+                'options' => [
+                    0 => __('Off', 'ImageProxy'),
+                    1 => __('On', 'ImageProxy'),
+                ],
             ]
         );
 
@@ -110,7 +141,7 @@ class Page
 
         if ('select' == $data['tag']) {
             $default['options'] = [];
-            $default['selected'] = '';
+
         }
 
         $data = wp_parse_args($data, $default);
@@ -147,7 +178,8 @@ class Page
         } else if ('select' == $data['tag']) {
             $out .= "<select name='{$commonNamePrefix}[{$data['name']}]' class='{$class}' {$attributes()} >";
             foreach ($data['options'] as $key => $value) {
-                $out .= "<option value='{$key}' " . selected($data['selected'], $key, false) . " >{$value}</option>";
+
+                $out .= "<option value='{$key}' " . selected($data['value'], $key, false) . " >{$value}</option>";
             }
             $out .= "</select>";
         }
