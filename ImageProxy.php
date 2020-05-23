@@ -31,13 +31,35 @@ use ImageProxy\Classes\Reformer;
 use ImageProxy\Compatibility\YoastSeo;
 
 class ImageProxy extends Wrap {
+
 	public $version = '1.0.1';
+
 	public static $textdomine;
+
+	private $handler = false;
 
 	public $elements = [];
 
 	public function __construct() {
 		self::$textdomine = $this->setTextdomain();
+	}
+
+	public function misc() {
+
+		add_filter( 'ImageProxy__convert-image-url', function ( $url, $args=[] ) {
+
+			if ( ! empty( Page::getOption( 'active' ) ) ) {
+
+				if ( empty( $this->handler ) ) {
+					$this->handler = new ImageProxy\Classes\Handler();
+				}
+
+				return $this->handler->convert( $url, $args );
+			}
+
+			return $url;
+		}, 10, 2 );
+
 	}
 
 	public function addPage() {
@@ -67,6 +89,7 @@ function ImageProxy__init() {
 	$plugin = new ImageProxy();
 	$plugin->addPage();
 	$plugin->active();
+	$plugin->misc();
 
 	$ImageProxy__var = $plugin->elements;
 }
