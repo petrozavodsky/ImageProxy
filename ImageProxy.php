@@ -11,55 +11,87 @@ Version: 1.0.3
 License: GPLv3
 */
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-require_once(plugin_dir_path(__FILE__) . "includes/Autoloader.php");
+require_once( plugin_dir_path( __FILE__ ) . "includes/Autoloader.php" );
 
-if (file_exists(plugin_dir_path(__FILE__) . "vendor/autoload.php")) {
-    require_once(plugin_dir_path(__FILE__) . "vendor/autoload.php");
+if ( file_exists( plugin_dir_path( __FILE__ ) . "vendor/autoload.php" ) ) {
+	require_once( plugin_dir_path( __FILE__ ) . "vendor/autoload.php" );
 }
 
 use ImageProxy\Admin\Page;
 use ImageProxy\Autoloader;
 
-new Autoloader(__FILE__, 'ImageProxy');
+new Autoloader( __FILE__, 'ImageProxy' );
 
 use ImageProxy\Base\Wrap;
 use ImageProxy\Classes\Reformer;
 use ImageProxy\Compatibility\YoastSeo;
 
-class ImageProxy extends Wrap
-{
-    public $version = '1.0.1';
-    public static $textdomine;
+class ImageProxy extends Wrap {
 
-    public function __construct()
-    {
-        self::$textdomine = $this->setTextdomain();
-        new Page();
-        $this->active();
-    }
+	public $version = '1.0.1';
 
-    public function active()
-    {
+	public static $textdomine;
 
-        if (!empty(Page::getOption('active'))) {
-            new Reformer();
-            $this->pluginsCompat();
-        }
-    }
+	private $handler = false;
 
-    private function pluginsCompat()
-    {
-        new YoastSeo();
-    }
+	public $elements = [];
+
+	public function __construct() {
+		self::$textdomine = $this->setTextdomain();
+	}
+
+	public function misc() {
+
+		add_filter( 'ImageProxy__convert-image-url', function ( $url, $args=[] ) {
+
+			if ( ! empty( Page::getOption( 'active' ) ) ) {
+
+				if ( empty( $this->handler ) ) {
+					$this->handler = new ImageProxy\Classes\Handler();
+				}
+
+				return $this->handler->convert( $url, $args );
+			}
+
+			return $url;
+		}, 10, 2 );
+
+	}
+
+	public function addPage() {
+		$this->elements['Page'] = new Page();
+	}
+
+	public function active() {
+
+		if ( ! empty( Page::getOption( 'active' ) ) ) {
+			$reformer = new Reformer();
+			$reformer->init();
+			$this->elements['Reformer'] = $reformer;
+
+			$this->pluginsCompat();
+		}
+	}
+
+	private function pluginsCompat() {
+		$this->elements['CompatYoastSeo'] = new YoastSeo();
+	}
 }
 
-function ImageProxy__init()
-{
-    new ImageProxy();
+function ImageProxy__init() {
+
+	global $ImageProxy__var;
+
+	$plugin = new ImageProxy();
+	$plugin->addPage();
+	$plugin->active();
+	$plugin->misc();
+
+	$ImageProxy__var = $plugin->elements;
 }
 
-add_action('plugins_loaded', 'ImageProxy__init', 30);
+add_action( 'plugins_loaded', 'ImageProxy__init', 30 );

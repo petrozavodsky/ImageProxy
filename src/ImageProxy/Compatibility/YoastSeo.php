@@ -54,7 +54,6 @@ class YoastSeo
 
                     $newUrl = preg_replace("#-(\d+x\d+)\.(png|jpeg|jpg|gif)$#i", '.${2}', $url);
 
-
                     return $this->removeOrigin(
                         $this->proxy->builder(
                         [

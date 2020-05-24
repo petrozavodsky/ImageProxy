@@ -91,14 +91,11 @@ class Builder
 
         array_unshift($data, '');
 
-
         array_push($data, rtrim(strtr(base64_encode($url), '+/', '-_'), '='));
 
         $path = implode('/', $data);
 
-
         return $this->getHostByImage($url) . $this->sign($path);
-
     }
 
     public function builder($data, $url)
@@ -218,7 +215,6 @@ class Builder
         $query = "/" . implode('/', $array);
 
         return $this->getHostByImage($url) . $this->sign($query);
-
     }
 
 }
