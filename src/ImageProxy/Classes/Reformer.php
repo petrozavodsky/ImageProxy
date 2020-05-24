@@ -2,26 +2,8 @@
 
 namespace ImageProxy\Classes;
 
-
-use SplFileInfo;
-
-//ImageProxy__site-ajax-actions-exclude
-//ImageProxy__site-host
-//ImageProxy__image-attachment-srcset
-//ImageProxy__image-attachment-src
-//ImageProxy__image-content-src
-//ImageProxy__image-id-skip
-//ImageProxy__image-src-skip
-//ImageProxy__image-avatar-src
-//ImageProxy__image-avatar-data-src
-//ImageProxy__image-convert-disable
-//ImageProxy__image-disable-sizes
-//ImageProxy__image-default-virtual-sizes
-
 class Reformer {
-
 	private $proxy;
-	private $siteUrl = false;
 
 	public function __construct() {
 
@@ -493,6 +475,7 @@ class Reformer {
 		$image[0] = $this->replaceHost( $image['0'] );
 		$image[0] = $this->replaceHost( wp_get_attachment_url( $id ) );
 
+		$image[0] = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $image['0'] );
 
 		if ( isset( $image[0] ) ) {
 
@@ -723,7 +706,6 @@ class Reformer {
 				return str_replace( array_keys( $array ), array_values( $array ), $str );
 			}
 		}
-
 
 		return $str;
 	}
