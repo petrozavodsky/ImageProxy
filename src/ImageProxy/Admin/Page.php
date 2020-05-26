@@ -81,7 +81,7 @@ class Page
             $descriptionSection,
             'host',
             [
-                'label' => __('Host', 'ImageProxy'),
+                'label' => __('Hosts', 'ImageProxy'),
                 'tag' => 'input',
                 'attrs' => [
                     'required' => 'required',
