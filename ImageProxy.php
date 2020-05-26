@@ -46,7 +46,7 @@ class ImageProxy extends Wrap {
 
 	public function misc() {
 
-		add_filter( 'ImageProxy__convert-image-url', function ( $url, $args=[] ) {
+		add_filter( 'ImageProxy__convert-image-url', function ( $url, $args = [] ) {
 
 			if ( ! empty( Page::getOption( 'active' ) ) ) {
 
@@ -64,6 +64,18 @@ class ImageProxy extends Wrap {
 
 	public function addPage() {
 		$this->elements['Page'] = new Page();
+		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), [ $this, 'settingsLink' ] );
+
+	}
+
+	public function settingsLink( $links ) {
+
+		$linkText          = __( 'Settings', 'ImageProxy' );
+		$url               = esc_url( admin_url( 'admin.php?page=' . Page::$slug ) );
+		$links['settings'] = "<a href='{$url}'>{$linkText}</a>";
+
+		return $links;
+
 	}
 
 	public function active() {
