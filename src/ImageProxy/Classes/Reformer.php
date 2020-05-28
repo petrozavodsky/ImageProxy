@@ -2,6 +2,8 @@
 
 namespace ImageProxy\Classes;
 
+use SplFileInfo;
+
 class Reformer {
 	private $proxy;
 

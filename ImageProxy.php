@@ -79,13 +79,11 @@ class ImageProxy extends Wrap
 
     public function settingsLink($links)
     {
-
         $linkText = __('Settings', 'ImageProxy');
         $url = esc_url(admin_url('admin.php?page=' . Page::$slug));
         $links['settings'] = "<a href='{$url}'>{$linkText}</a>";
 
         return $links;
-
     }
 
     public function active()
