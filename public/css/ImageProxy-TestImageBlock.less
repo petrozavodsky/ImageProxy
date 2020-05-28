@@ -1,0 +1,19 @@
+img.ImageProxy__test-image {
+  display: block;
+  position: relative;
+  background-color: #f9f9f9;
+
+  &::before{
+    display: inherit;
+    position: absolute;
+    width: 100%;
+  }
+
+  &::before {
+    content: "";
+    background: url(../images/kotik-error.png);
+    top: 0;
+    bottom: 0;
+  }
+
+}

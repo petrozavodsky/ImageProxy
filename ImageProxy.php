@@ -71,6 +71,10 @@ class ImageProxy extends Wrap
         $this->elements['Page'] = new Page();
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), [$this, 'settingsLink']);
 
+        if (apply_filters('ImageProxy__test-image-block-enable', false)) {
+            $testImage = new TestImageBlock();
+            $testImage->init();
+        };
     }
 
     public function settingsLink($links)
