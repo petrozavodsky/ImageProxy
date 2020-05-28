@@ -11,99 +11,107 @@ Version: 1.0.3
 License: GPLv3
 */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+if (!defined('ABSPATH')) {
+    exit;
 }
 
-require_once( plugin_dir_path( __FILE__ ) . "includes/Autoloader.php" );
+require_once(plugin_dir_path(__FILE__) . "includes/Autoloader.php");
 
-if ( file_exists( plugin_dir_path( __FILE__ ) . "vendor/autoload.php" ) ) {
-	require_once( plugin_dir_path( __FILE__ ) . "vendor/autoload.php" );
+if (file_exists(plugin_dir_path(__FILE__) . "vendor/autoload.php")) {
+    require_once(plugin_dir_path(__FILE__) . "vendor/autoload.php");
 }
 
 use ImageProxy\Admin\Page;
 use ImageProxy\Autoloader;
 
-new Autoloader( __FILE__, 'ImageProxy' );
+new Autoloader(__FILE__, 'ImageProxy');
 
 use ImageProxy\Base\Wrap;
 use ImageProxy\Classes\Reformer;
 use ImageProxy\Compatibility\YoastSeo;
 
-class ImageProxy extends Wrap {
+class ImageProxy extends Wrap
+{
 
-	public $version = '1.0.1';
+    public $version = '1.0.1';
 
-	public static $textdomine;
+    public static $textdomine;
 
-	private $handler = false;
+    private $handler = false;
 
-	public $elements = [];
+    public $elements = [];
 
-	public function __construct() {
-		self::$textdomine = $this->setTextdomain();
-	}
+    public function __construct()
+    {
+        self::$textdomine = $this->setTextdomain();
+    }
 
-	public function misc() {
+    public function misc()
+    {
 
-		add_filter( 'ImageProxy__convert-image-url', function ( $url, $args = [] ) {
+        add_filter('ImageProxy__convert-image-url', function ($url, $args = []) {
 
-			if ( ! empty( Page::getOption( 'active' ) ) ) {
+            if (!empty(Page::getOption('active'))) {
 
-				if ( empty( $this->handler ) ) {
-					$this->handler = new ImageProxy\Classes\Handler();
-				}
+                if (empty($this->handler)) {
+                    $this->handler = new ImageProxy\Classes\Handler();
+                }
 
-				return $this->handler->convert( $url, $args );
-			}
+                return $this->handler->convert($url, $args);
+            }
 
-			return $url;
-		}, 10, 2 );
+            return $url;
+        }, 10, 2);
 
-	}
+    }
 
-	public function addPage() {
-		$this->elements['Page'] = new Page();
-		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), [ $this, 'settingsLink' ] );
+    public function addPage()
+    {
+        $this->elements['Page'] = new Page();
+        add_filter('plugin_action_links_' . plugin_basename(__FILE__), [$this, 'settingsLink']);
 
-	}
+    }
 
-	public function settingsLink( $links ) {
+    public function settingsLink($links)
+    {
 
-		$linkText          = __( 'Settings', 'ImageProxy' );
-		$url               = esc_url( admin_url( 'admin.php?page=' . Page::$slug ) );
-		$links['settings'] = "<a href='{$url}'>{$linkText}</a>";
+        $linkText = __('Settings', 'ImageProxy');
+        $url = esc_url(admin_url('admin.php?page=' . Page::$slug));
+        $links['settings'] = "<a href='{$url}'>{$linkText}</a>";
 
-		return $links;
+        return $links;
 
-	}
+    }
 
-	public function active() {
+    public function active()
+    {
 
-		if ( ! empty( Page::getOption( 'active' ) ) ) {
-			$reformer = new Reformer();
-			$reformer->init();
-			$this->elements['Reformer'] = $reformer;
+        if (!empty(Page::getOption('active')) && apply_filters('ImageProxy__converter-enable', true)) {
+            $reformer = new Reformer();
+            $reformer->init();
+            $this->elements['Reformer'] = $reformer;
 
-			$this->pluginsCompat();
-		}
-	}
+            $this->pluginsCompat();
+        }
+    }
 
-	private function pluginsCompat() {
-		$this->elements['CompatYoastSeo'] = new YoastSeo();
-	}
+    private function pluginsCompat()
+    {
+        $this->elements['CompatYoastSeo'] = new YoastSeo();
+    }
 }
 
-function ImageProxy__init() {
+function ImageProxy__init()
+{
 
-	global $ImageProxy__var;
+    global $ImageProxy__var;
 
-	$plugin = new ImageProxy();
-	$plugin->addPage();
-	$plugin->active();
-	$plugin->misc();
+    $plugin = new ImageProxy();
+    $plugin->addPage();
+    $plugin->active();
+    $plugin->misc();
 
-	$ImageProxy__var = $plugin->elements;
+    $ImageProxy__var = $plugin->elements;
 }
 
-add_action( 'plugins_loaded', 'ImageProxy__init', 30 );
+add_action('plugins_loaded', 'ImageProxy__init', 30);
