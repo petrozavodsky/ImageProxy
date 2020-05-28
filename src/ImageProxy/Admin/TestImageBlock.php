@@ -25,7 +25,12 @@ class TestImageBlock
 
     public function block()
     {
-        $imgSrc = apply_filters('ImageProxy__convert-image-url', "{$this->url}public/images/kotik-ok.png");
+        $testImgUrl = "{$this->url}public/images/kotik-ok.png";
+
+        $imgSrc = apply_filters(
+            'ImageProxy__convert-image-url',
+            apply_filters('ImageProxy__test-image-url', $testImgUrl)
+        );
         ?>
 
         <table class="form-table" role="presentation">
