@@ -22,6 +22,7 @@ if (file_exists(plugin_dir_path(__FILE__) . "vendor/autoload.php")) {
 }
 
 use ImageProxy\Admin\Page;
+use ImageProxy\Admin\TestImageBlock;
 use ImageProxy\Autoloader;
 
 new Autoloader(__FILE__, 'ImageProxy');

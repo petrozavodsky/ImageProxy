@@ -4,13 +4,13 @@ namespace ImageProxy\Base;
 
 class Wrap {
 
-	public $version = '1.0.3';
-	public $css_patch = "public/css/";
-	public $js_patch = "public/js/";
+	public $version = '1.0.0';
+	public $cssPatch = "public/css/";
+	public $jsPatch = "public/js/";
 
-	private $defaults_vars = [
-		'css_patch' => "public/css/",
-		'js_patch'  => "public/js/",
+	private $defaultsVars = [
+		'cssPatch' => "public/css/",
+		'jsPatch'  => "public/js/",
 		'version'   => "1.0.3",
 		'min'       => true
 	];
@@ -22,7 +22,7 @@ class Wrap {
 	 */
 	public function __get( $name ) {
 
-		if ( $name == 'base_name' ) {
+		if ( $name == 'baseName' ) {
 			return $this->basenameHelper();
 		}
 
@@ -35,11 +35,11 @@ class Wrap {
 
 		}
 
-		if ( $name == 'plugin_path' ) {
+		if ( $name == 'pluginPath' ) {
 			return $this->pluginDir();
 		}
 
-		if ( $name == 'plugin_url' ) {
+		if ( $name == 'pluginUrl' ) {
 			return $this->url();
 		}
 
@@ -47,8 +47,8 @@ class Wrap {
 			return $this->getTextDomain();
 		}
 
-		if ( array_key_exists( $name, $this->defaults_vars ) ) {
-			return $this->defaults_vars[ $name ];
+		if ( array_key_exists( $name, $this->defaultsVars ) ) {
+			return $this->defaultsVars[ $name ];
 		}
 
 		return null;
@@ -78,12 +78,12 @@ class Wrap {
 	/**
 	 * @return string
 	 */
-	public function url() {
+	public static function url() {
 		$plugins    = trailingslashit( plugins_url() );
 		$plugin     = plugin_dir_url( __FILE__ );
 		$plugin     = preg_replace( "#/$#", "", $plugin );
-		$path_array = str_replace( $plugins, '', $plugin );
-		$array      = explode( '/', $path_array );
+		$pathArray = str_replace( $plugins, '', $plugin );
+		$array      = explode( '/', $pathArray );
 		$path       = array_shift( $array );
 
 		return trailingslashit( $plugins . $path );
@@ -118,10 +118,10 @@ class Wrap {
 	 */
 	public function setTextdomain( $domine = false ) {
 		if ( ! $domine ) {
-			$domine = $this->base_name;
+			$domine = $this->baseName;
 		}
 
-		load_textdomain( $domine, $this->plugin_path . "languages/{$this->plugin_text_domain}-" . get_locale() . '.mo' );
+		load_textdomain( $domine, $this->pluginPath . "languages/{$this->pluginTextDomain}-" . get_locale() . '.mo' );
 
 		return $domine;
 	}

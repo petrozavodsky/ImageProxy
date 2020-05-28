@@ -211,6 +211,7 @@ class Page
             <?php
             settings_fields(self::$slug);
             do_settings_sections(self::$slug);
+            do_action('ImageProxy__test-block');
             submit_button();
             ?>
         </form>
