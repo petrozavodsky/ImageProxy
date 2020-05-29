@@ -11,7 +11,7 @@ class Wrap {
 	private $defaultsVars = [
 		'cssPatch' => "public/css/",
 		'jsPatch'  => "public/js/",
-		'version'   => "1.0.3",
+		'version'   => "1.0.0",
 		'min'       => true
 	];
 
