@@ -7,7 +7,7 @@ Author URI: https://alkoweb.ru
 Text Domain: ImageProxy
 Domain Path: /languages
 Requires PHP: 7.0
-Version: 1.0.1
+Version: 1.0.0
 License: GPLv3
 */
 
