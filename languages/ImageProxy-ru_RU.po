@@ -8,51 +8,57 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Language-Team: \n"
+"X-Generator: Poedit 2.3.1\n"
+"Last-Translator: \n"
+"Language: ru_RU\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.js\n"
-"X-Poedit-SourceCharset: UTF-8\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ImageProxy.php:82
 msgid "Settings"
-msgstr ""
+msgstr "Настройки"
 
 #: src/ImageProxy/Admin/Page.php:45
 msgid "Imgproxy settings"
-msgstr ""
+msgstr "Настройки Imgproxy"
 
 #: src/ImageProxy/Admin/Page.php:46
 msgid "Imgproxy options"
-msgstr ""
+msgstr "Опции Imgproxy"
 
 #: src/ImageProxy/Admin/Page.php:52
 msgid "Base Settings"
-msgstr ""
+msgstr "Основные настройки"
 
 #: src/ImageProxy/Admin/Page.php:58
 msgid "Key"
-msgstr ""
+msgstr "Key"
 
 #: src/ImageProxy/Admin/Page.php:71
 msgid "Salt"
-msgstr ""
+msgstr "Salt"
 
 #: src/ImageProxy/Admin/Page.php:84
 msgid "Hosts"
-msgstr ""
+msgstr "Хосты"
 
 #: src/ImageProxy/Admin/Page.php:98
 msgid "Active"
-msgstr ""
+msgstr "Активность"
 
 #: src/ImageProxy/Admin/Page.php:104
 msgid "Off"
-msgstr ""
+msgstr "Выкл"
 
 #: src/ImageProxy/Admin/Page.php:105
 msgid "On"
-msgstr ""
+msgstr "Вкл"
 
 #: src/ImageProxy/Admin/TestImageBlock.php:40
 msgid "Test image"
-msgstr ""
+msgstr "Тестовая картинка"
