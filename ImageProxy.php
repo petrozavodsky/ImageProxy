@@ -7,7 +7,7 @@ Author URI: https://alkoweb.ru
 Text Domain: ImageProxy
 Domain Path: /languages
 Requires PHP: 7.0
-Version: 1.0.3
+Version: 1.0.1
 License: GPLv3
 */
 
@@ -34,7 +34,7 @@ use ImageProxy\Compatibility\YoastSeo;
 class ImageProxy extends Wrap
 {
 
-    public $version = '1.0.1';
+    public $version = '1.0.0';
 
     public static $textdomine;
 
