@@ -10,4 +10,4 @@
 
 Вместо WP-CLI тоже самое можно сделать с помощью плагина [Regenerate Thumbnails](https://wordpress.org/plugins/regenerate-thumbnails/)
 
-Остались вопросы? [Готов ответить в telegram](https://github.com/petrozavodsky/ImageProxy)
+Остались вопросы? Готов ответить в [telegram](https://github.com/petrozavodsky/ImageProxy)
