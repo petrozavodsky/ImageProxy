@@ -9,3 +9,5 @@
 Удалить неиспользуемые размеры изображений можно при помощи плагина WP-CLI командой: `wp media regenerate --yes` при условии что плагин включен и активен. Этой же командой можно сгенерировать их заново если предварительно выключить плагин.
 
 Вместо WP-CLI тоже самое можно сделать с помощью плагина [Regenerate Thumbnails](https://wordpress.org/plugins/regenerate-thumbnails/)
+
+Остались вопросы? [Готов ответить в telegram](https://github.com/petrozavodsky/ImageProxy)
