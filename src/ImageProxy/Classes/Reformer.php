@@ -151,7 +151,7 @@ class Reformer {
 
 	private function calculateSizesBySourceImage( $source, $base, $id ) {
 
-		$c      = 100;
+		$c      = 200;
 		$width  = $source['width'];
 		$height = $source['height'];
 		$out    = [];
@@ -483,7 +483,8 @@ class Reformer {
 
 			if ( is_string( $size ) ) {
 
-				$sizeMeta    = ( isset( $sizes[ $size ] ) ? $sizes[ $size ] : 0 );
+				$sizeMeta    = ( isset( $sizes[ $size ] ) ? $sizes[ $size ] : ['width'=>0,'height'=>0, 'crop' => false] );
+
 				$builderArgs = $this->cropHelper(
 					$meta['width'], $meta['height'],
 					$sizeMeta['width'], $sizeMeta['height'],
