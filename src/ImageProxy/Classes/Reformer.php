@@ -435,9 +435,7 @@ class Reformer
         foreach ($sources as $source) {
             $findSize = $sizesByName($source['url']);
 
-            if (empty($findSize)) {
-                $source['url'] = $imageSrc;
-            } else {
+            if (!empty($findSize)) {
 
                 if (0 < $findSize['width'] || 0 < $findSize['height']) {
 
@@ -461,11 +459,15 @@ class Reformer
 
                 }
 
+                $source = array_diff($source, [false]);
+
+                $out[] = $source;
             }
 
-            $source = array_diff($source, [false]);
+        }
 
-            $out[] = $source;
+        if (562755 === $id) {
+            d($out);
         }
 
         return $out;
