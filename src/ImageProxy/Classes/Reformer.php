@@ -477,8 +477,6 @@ class Reformer {
 		$image[0] = $this->replaceHost( $image['0'] );
 		$image[0] = $this->replaceHost( wp_get_attachment_url( $id ) );
 
-		$image[0] = str_replace( '://royalcheese.lc/', '://royalcheese.ru/', $image['0'] );
-
 		if ( isset( $image[0] ) ) {
 
 			if ( is_string( $size ) ) {
