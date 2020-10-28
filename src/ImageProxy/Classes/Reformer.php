@@ -465,11 +465,7 @@ class Reformer
             }
 
         }
-
-        if (562755 === $id) {
-            d($out);
-        }
-
+        
         return $out;
     }
 
